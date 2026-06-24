@@ -1,0 +1,6 @@
+[install]
+# Use the bun registry but fall back to npm registry compatibility.
+linker = "hoisted"
+
+[test]
+preload = []

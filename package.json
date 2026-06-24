@@ -1,0 +1,34 @@
+{
+  "name": "1auction",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Mini Realtime Auction Room — Next.js + Socket.io + Redis + PostgreSQL",
+  "packageManager": "bun@1.3.5",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run build:shared && bun run --filter '*' dev",
+    "build": "bun run build:shared && bun run --filter '@auction/web' build && bun run --filter '@auction/socket-server' build",
+    "lint": "bun run --filter '*' lint",
+    "typecheck": "bun run build:shared && bun run --filter '*' typecheck",
+    "dev:web": "bun run build:shared && bun run --filter @auction/web dev",
+    "dev:socket": "bun run build:shared && bun run --filter @auction/socket-server dev",
+    "watch:shared": "bun run --filter @auction/shared dev",
+    "build:shared": "bun run --filter @auction/shared build",
+    "build:web": "bun run build:shared && bun run --filter @auction/web build",
+    "build:socket": "bun run build:shared && bun run --filter @auction/socket-server build",
+    "db:generate": "bun run --filter @auction/web db:generate",
+    "db:migrate": "bun run --filter @auction/web db:migrate",
+    "db:seed": "bun run --filter @auction/web db:seed",
+    "clean": "rm -rf apps/*/node_modules apps/*/dist apps/*/.next packages/*/node_modules packages/*/dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "bun": ">=1.3.0",
+    "node": ">=20"
+  }
+}

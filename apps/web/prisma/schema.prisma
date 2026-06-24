@@ -1,0 +1,193 @@
+// Prisma schema for 1auction.
+// Documentation: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  BetterAuth: derived from https://www.better-auth.com/docs/concepts/database
+/*  We model the minimal subset we need. BetterAuth's Prisma adapter reads
+/*  these tables directly.
+/* ────────────────────────────────────────────────────────────────────────── */
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  emailVerified Boolean @default(false)
+  image        String?
+  activeRole   Role     @default(BIDDER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions   Session[]
+  accounts   Account[]
+  roomsOwned Room[]      @relation("RoomAuctioneer")
+  participations RoomParticipant[]
+  bids       Bid[]
+  winners    Winner[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  accountId         String
+  providerId        String
+  userId            String
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken       String?
+  refreshToken      String?
+  accessTokenExpiresAt DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope             String?
+  idToken           String?
+  password          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([identifier])
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Auction domain                                                          */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+enum Role {
+  AUCTIONEER
+  BIDDER
+}
+
+enum RoomStatus {
+  LOBBY
+  AUCTION
+  COMPLETED
+}
+
+enum ItemStatus {
+  PENDING
+  ACTIVE
+  SOLD
+  UNSOLD
+}
+
+model Room {
+  id               String         @id @default(cuid())
+  code             String         @unique
+  title            String
+  description      String         @default("")
+  status           RoomStatus     @default(LOBBY)
+  auctioneerId     String
+  auctioneer       User           @relation("RoomAuctioneer", fields: [auctioneerId], references: [id], onDelete: Cascade)
+  perRoomBudget    Int
+  minIncrement     Int
+  itemDurationSeconds Int
+  activeItemIndex  Int?
+  completedAt      DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  items          AuctionItem[]
+  participants  RoomParticipant[]
+  bids          Bid[]
+  winners       Winner[]
+
+  @@index([status])
+  @@index([auctioneerId])
+}
+
+model RoomParticipant {
+  id      String @id @default(cuid())
+  roomId  String
+  userId  String
+  room    Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /** Per-room budget at join time (snapshot, immutable). */
+  budget  Int
+  /** Live reserved amount for the user's current high bid on the active item. */
+  reserved Int @default(0)
+  /** Permanently deducted amount for items the user has won. */
+  spent   Int    @default(0)
+  joinedAt DateTime @default(now())
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+}
+
+model AuctionItem {
+  id            String     @id @default(cuid())
+  roomId        String
+  room          Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  slotIndex     Int
+  name          String
+  description   String     @default("")
+  imageUrl      String?
+  startingPrice Int
+  status        ItemStatus @default(PENDING)
+  winnerId      String?
+  winningBid    Int?
+  resolvedAt    DateTime?
+
+  bids    Bid[]
+  winners Winner[]
+
+  @@index([roomId, slotIndex])
+}
+
+model Bid {
+  id        String   @id @default(cuid())
+  roomId    String
+  itemId    String
+  userId    String
+  amount    Int
+  placedAt  DateTime @default(now())
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  item      AuctionItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, itemId])
+  @@index([userId])
+}
+
+model Winner {
+  id        String   @id @default(cuid())
+  roomId    String
+  itemId    String
+  userId    String
+  amount    Int
+  wonAt     DateTime @default(now())
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  item      AuctionItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, itemId])
+  @@index([userId])
+}

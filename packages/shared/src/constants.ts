@@ -1,0 +1,26 @@
+export const AUCTION_ROOM = {
+  MAX_BIDDERS: 6,
+  MIN_BIDDERS_TO_START: 1,
+  AUTO_ADVANCE_COOLDOWN_SECONDS: 5,
+} as const;
+
+export const AUCTION_TIMER = {
+  DEFAULT_DURATION_SECONDS: 60,
+} as const;
+
+export const AUCTION_BID = {
+  DEFAULT_MIN_INCREMENT: 100,
+  DEFAULT_PER_ROOM_BUDGET: 10_000,
+} as const;
+
+export const ROOM_CODE = {
+  LENGTH: 6,
+  ALPHABET: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
+} as const;
+
+export const LIMITS = {
+  ROOM_TITLE_MAX: 80,
+  ITEM_NAME_MAX: 120,
+  ITEM_DESCRIPTION_MAX: 1000,
+  CHAT_MESSAGE_MAX: 280,
+} as const;
