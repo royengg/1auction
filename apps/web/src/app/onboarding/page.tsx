@@ -1,0 +1,103 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Loader2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSession } from "@/lib/auth-client";
+
+const roles = [
+  {
+    id: "AUCTIONEER",
+    title: "I'm an Auctioneer",
+    description: "Create a room, list items, invite bidders, and run the auction live.",
+  },
+  {
+    id: "BIDDER",
+    title: "I'm a Bidder",
+    description: "Browse public auctions, join with a room code, and bid live.",
+  },
+] as const;
+
+export default function OnboardingPage() {
+  const router = useRouter();
+  const { data: session, isPending } = useSession();
+  const [submitting, setSubmitting] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isPending && session === null) {
+      router.replace("/sign-in");
+    }
+  }, [isPending, session, router]);
+
+  async function pickRole(role: "AUCTIONEER" | "BIDDER") {
+    setSubmitting(role);
+    const res = await fetch("/api/me/role", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ role }),
+    });
+    setSubmitting(null);
+    if (!res.ok) return;
+    router.push("/dashboard");
+    router.refresh();
+  }
+
+  if (isPending || !session) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </main>
+    );
+  }
+
+  return (
+    <main className="container flex min-h-screen flex-col items-center justify-center gap-8 py-16">
+      <div className="text-center">
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Welcome, {session.user.name}
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          Choose a profile to continue. You can switch roles later from the dashboard.
+        </p>
+      </div>
+
+      <div className="grid w-full max-w-3xl gap-4 sm:grid-cols-2">
+        {roles.map((role) => (
+          <Card
+            key={role.id}
+            className="flex flex-col">
+            <CardHeader>
+              <CardTitle>{role.title}</CardTitle>
+              <CardDescription>{role.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="mt-auto pt-4">
+              <Button
+                onClick={() => pickRole(role.id)}
+                disabled={submitting !== null}
+                className="w-full">
+                {submitting === role.id ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Continuing…
+                  </>
+                ) : (
+                  "Continue as " + role.id.toLowerCase()
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <p className="text-sm text-muted-foreground">
+        Want to sign out and use a different account?{" "}
+        <Link href="/sign-in" className="font-medium text-foreground underline-offset-4 hover:underline">
+          Switch account
+        </Link>
+      </p>
+    </main>
+  );
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { io, type Socket } from "socket.io-client";
-import { publicEnv } from "@/lib/env";
+import { publicEnv } from "@/lib/env-client";
 
 let socket: Socket | null = null;
 

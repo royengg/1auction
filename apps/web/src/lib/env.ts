@@ -1,3 +1,10 @@
+/**
+ * Server-only env access. Loads dotenv from the repo root at import time and
+ * exposes server secrets. NEVER import this from a client component — the
+ * `server-only` import guarantees a build error if you do.
+ */
+
+import "server-only";
 import { config } from "dotenv";
 
 config({ path: [".env", ".env.local", "../../.env", "../../.env.local"] });
@@ -12,7 +19,10 @@ function required(name: string, value: string | undefined): string {
 }
 
 export const publicEnv = {
-  socketUrl: required("NEXT_PUBLIC_SOCKET_URL", process.env.NEXT_PUBLIC_SOCKET_URL),
+  socketUrl: required(
+    "NEXT_PUBLIC_SOCKET_URL",
+    process.env.NEXT_PUBLIC_SOCKET_URL,
+  ),
 } as const;
 
 export const serverEnv = {
