@@ -14,8 +14,8 @@ export const AUCTION_BID = {
 } as const;
 
 export const ROOM_CODE = {
-  LENGTH: 6,
-  ALPHABET: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
+  LENGTH: 4,
+  ALPHABET: "0123456789",
 } as const;
 
 export const LIMITS = {

@@ -6,7 +6,16 @@ import { Server } from "socket.io";
 import { env } from "./env.js";
 import { getRedis, closeRedis } from "./redis.js";
 import { verifySocketToken, type SessionUser } from "./auth.js";
-import { ClientEvent, ServerEvent, type Ack } from "@auction/shared";
+import { handleJoinRoom } from "./join.js";
+import { placeBid } from "./bids.js";
+import {
+  handlePause,
+  handleResume,
+  handleStartAuction,
+} from "./auctioneer.js";
+import { registerChat } from "./chat.js";
+import { markAbsent, broadcastPresence } from "./presence.js";
+import { ClientEvent, type Ack } from "@auction/shared";
 
 const app = express();
 app.use(cors({ origin: env.webOrigin, credentials: true }));
@@ -23,72 +32,77 @@ io.on("connection", (socket) => {
   socket.data.user = undefined;
   socket.data.roomId = undefined;
 
-  socket.on(ClientEvent.AUTHENTICATE, (payload: unknown, ack: Ack<SessionUser>): void => {
-    try {
-      const token =
-        typeof payload === "object" && payload && "token" in payload
-          ? String((payload as { token: unknown }).token)
-          : null;
-      if (!token) {
-        ack({ ok: false, error: { message: "missing token" } });
+  socket.on(
+    ClientEvent.AUTHENTICATE,
+    (payload: unknown, ack: Ack<SessionUser>) => {
+      try {
+        const token =
+          typeof payload === "object" && payload && "token" in payload
+            ? String((payload as { token: unknown }).token)
+            : null;
+        if (!token) {
+          ack({ ok: false, error: { message: "missing token" } });
+          socket.disconnect();
+          return;
+        }
+        const user = verifySocketToken(token);
+        socket.data.user = user;
+        socket.data.authenticatedAt = Date.now();
+        ack({ ok: true, data: user });
+      } catch (err) {
+        ack({
+          ok: false,
+          error: {
+            message: err instanceof Error ? err.message : "invalid token",
+          },
+        });
         socket.disconnect();
-        return;
       }
-      const user = verifySocketToken(token);
-      socket.data.user = user;
-      socket.data.authenticatedAt = Date.now();
-      ack({ ok: true, data: user });
-    } catch (err) {
-      ack({
-        ok: false,
-        error: {
-          message: err instanceof Error ? err.message : "invalid token",
-        },
-      });
-      socket.disconnect();
+    },
+  );
+
+  socket.on(ClientEvent.JOIN_ROOM, (payload: unknown, ack: Ack) =>
+    handleJoinRoom(io, socket, payload, ack as Parameters<typeof handleJoinRoom>[3]),
+  );
+
+  socket.on(ClientEvent.PLACE_BID, (payload: unknown, ack: Ack) =>
+    placeBid(io, socket, payload, ack as Parameters<typeof placeBid>[3]),
+  );
+
+  socket.on(ClientEvent.START_AUCTION, (payload: unknown, ack: Ack) =>
+    handleStartAuction(io, socket, payload, ack as Parameters<typeof handleStartAuction>[3]),
+  );
+
+  socket.on(ClientEvent.PAUSE_AUCTION, (payload: unknown, ack: Ack) =>
+    handlePause(io, socket, payload, ack as Parameters<typeof handlePause>[3]),
+  );
+
+  socket.on(ClientEvent.RESUME_AUCTION, (payload: unknown, ack: Ack) =>
+    handleResume(io, socket, payload, ack as Parameters<typeof handleResume>[3]),
+  );
+
+  registerChat(socket, io);
+
+  socket.on("disconnect", async () => {
+    const user = socket.data.user as SessionUser | undefined;
+    const roomId = socket.data.roomId as string | undefined;
+    if (user && roomId) {
+      await markAbsent(roomId, user.id);
+      await broadcastPresence(io, roomId);
     }
   });
 
-  const requireAuth = (): SessionUser | null => {
-    if (!socket.data.user) {
-      socket.emit(ServerEvent.ERROR, { message: "not authenticated" });
-      return null;
+  socket.on(ClientEvent.LEAVE_ROOM, () => {
+    const user = socket.data.user as SessionUser | undefined;
+    const roomId = socket.data.roomId as string | undefined;
+    if (roomId) {
+      socket.leave(roomId);
+      socket.data.roomId = undefined;
+      if (user) {
+        void markAbsent(roomId, user.id);
+        void broadcastPresence(io, roomId);
+      }
     }
-    return socket.data.user;
-  };
-
-  socket.on(ClientEvent.JOIN_ROOM, (_payload: unknown, ack: Ack) => {
-    if (!requireAuth()) return ack({ ok: false, error: { message: "auth" } });
-    ack({ ok: true, data: { todo: "joinRoom" } });
-  });
-
-  socket.on(ClientEvent.PLACE_BID, (_payload: unknown, ack: Ack) => {
-    if (!requireAuth()) return ack({ ok: false, error: { message: "auth" } });
-    ack({ ok: true, data: { todo: "placeBid" } });
-  });
-
-  socket.on(ClientEvent.START_AUCTION, (_payload: unknown, ack: Ack) => {
-    if (!requireAuth()) return ack({ ok: false, error: { message: "auth" } });
-    ack({ ok: true, data: { todo: "startAuction" } });
-  });
-
-  socket.on(ClientEvent.PAUSE_AUCTION, (_payload: unknown, ack: Ack) => {
-    if (!requireAuth()) return ack({ ok: false, error: { message: "auth" } });
-    ack({ ok: true, data: { todo: "pause" } });
-  });
-
-  socket.on(ClientEvent.RESUME_AUCTION, (_payload: unknown, ack: Ack) => {
-    if (!requireAuth()) return ack({ ok: false, error: { message: "auth" } });
-    ack({ ok: true, data: { todo: "resume" } });
-  });
-
-  socket.on(ClientEvent.SEND_CHAT, (_payload: unknown, ack: Ack) => {
-    if (!requireAuth()) return ack({ ok: false, error: { message: "auth" } });
-    ack({ ok: true, data: { todo: "chat" } });
-  });
-
-  socket.on("disconnect", () => {
-    // Phase 4: presence cleanup, release reserved budget if appropriate.
   });
 });
 
