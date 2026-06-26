@@ -67,7 +67,8 @@ export function useSocket(): UseSocketReturn {
       });
 
       s.on("connect_error", (err: Error) => {
-        setError(err.message);
+        setError(`WebSocket: ${err.message}`);
+        console.error("[Socket] connect_error:", err.message, err);
       });
     }
 

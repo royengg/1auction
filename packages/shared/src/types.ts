@@ -56,6 +56,7 @@ export interface RoomSummary {
   bidderCount: number;
   perRoomBudget: number;
   minIncrement: number;
+  maxBidders: number;
   createdAt: string;
 }
 
@@ -126,5 +127,6 @@ export interface CreateRoomInput {
   perRoomBudget: number;
   minIncrement: number;
   itemDurationSeconds: number;
+  maxBidders: number;
   items: CreateRoomItemInput[];
 }

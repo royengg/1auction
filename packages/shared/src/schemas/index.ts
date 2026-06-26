@@ -48,6 +48,7 @@ export const roomSummarySchema = z.object({
   bidderCount: z.number().int().nonnegative(),
   perRoomBudget: z.number().int().positive(),
   minIncrement: z.number().int().positive(),
+  maxBidders: z.number().int().min(2).max(6).default(6),
   createdAt: z.string(),
 });
 
@@ -58,6 +59,7 @@ export const createRoomInputSchema = z
     perRoomBudget: z.number().int().positive(),
     minIncrement: z.number().int().positive(),
     itemDurationSeconds: z.number().int().positive(),
+    maxBidders: z.number().int().min(2).max(6).default(6),
     items: z
       .array(
         z.object({

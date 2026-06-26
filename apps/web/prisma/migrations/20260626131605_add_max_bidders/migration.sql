@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Room" ADD COLUMN     "maxBidders" INTEGER NOT NULL DEFAULT 6;

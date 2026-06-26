@@ -72,6 +72,7 @@ export function buildRoomSummary(room: CountRoom): RoomSummary {
     bidderCount: room.participants.length,
     perRoomBudget: room.perRoomBudget,
     minIncrement: room.minIncrement,
+    maxBidders: room.maxBidders,
     createdAt: room.createdAt.toISOString(),
   };
 }

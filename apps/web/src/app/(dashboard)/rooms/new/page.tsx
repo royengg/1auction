@@ -41,6 +41,7 @@ export default function CreateAuctionPage() {
   const [itemDuration, setItemDuration] = useState(
     String(AUCTION_TIMER.DEFAULT_DURATION_SECONDS),
   );
+  const [maxBidders, setMaxBidders] = useState("6");
   const [items, setItems] = useState<ItemDraft[]>([emptyItem()]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,6 +109,7 @@ export default function CreateAuctionPage() {
         perRoomBudget: Number(perRoomBudget),
         minIncrement: Number(minIncrement),
         itemDurationSeconds: Number(itemDuration),
+        maxBidders: Number(maxBidders),
         items: items.map((item) => ({
           name: item.name.trim(),
           description: item.description.trim(),
@@ -173,7 +175,7 @@ export default function CreateAuctionPage() {
                 rows={3}
               />
             </div>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
                 <Label htmlFor="budget">Per-Room Budget ($)</Label>
                 <Input
@@ -204,6 +206,18 @@ export default function CreateAuctionPage() {
                   min="1"
                   value={itemDuration}
                   onChange={(e) => setItemDuration(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="maxBidders">Max Bidders</Label>
+                <Input
+                  id="maxBidders"
+                  type="number"
+                  min="2"
+                  max="6"
+                  value={maxBidders}
+                  onChange={(e) => setMaxBidders(e.target.value)}
                   required
                 />
               </div>

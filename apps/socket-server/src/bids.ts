@@ -133,6 +133,8 @@ export async function placeBid(
       message = "auctioneers cannot bid";
     } else if (reason === "NOT_AUTHENTICATED") {
       message = "you are not registered as a bidder in this room";
+    } else if (reason === "ALREADY_HIGH_BIDDER") {
+      message = "you are already the highest bidder — wait for someone to outbid you";
     }
     ack({ ok: false, error: { message, reason } });
     return;

@@ -45,6 +45,10 @@ local prevHighId = redis.call('HGET', itemKey, 'highBidUserId') or ''
 local prevHighAmount = tonumber(redis.call('HGET', itemKey, 'highBidAmount')) or 0
 local startingPrice = tonumber(redis.call('HGET', itemKey, 'startingPrice')) or 0
 
+if prevHighId == bidderId then
+  return {'error', 'ALREADY_HIGH_BIDDER', '', '', '', ''}
+end
+
 local minRequired
 if prevHighId and prevHighId ~= '' then
   minRequired = prevHighAmount + minIncrement

@@ -104,6 +104,7 @@ export type BidRejectReason =
   | "INSUFFICIENT_BUDGET"
   | "ITEM_NOT_ACTIVE"
   | "TIMER_EXPIRED"
+  | "ALREADY_HIGH_BIDDER"
   | "INTERNAL_ERROR";
 
 export interface ServerBidRejectedPayload {

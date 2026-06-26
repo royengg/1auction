@@ -49,7 +49,9 @@ export default function ResultsPage() {
   }
 
   const resolvedItems: ResolvedItem[] =
-    results ?? roomState?.resolvedItems ?? [];
+    (results && results.length > 0)
+      ? results
+      : (roomState?.resolvedItems ?? []);
 
   const soldItems = resolvedItems.filter((i) => i.status === "SOLD");
   const totalRevenue = soldItems.reduce(

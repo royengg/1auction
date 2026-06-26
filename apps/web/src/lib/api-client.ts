@@ -22,6 +22,18 @@ export interface RoleResponse {
 }
 
 export interface ResultsResponse {
+  room: {
+    id: string;
+    title: string;
+    code: string;
+    status: string;
+    auctioneerName: string;
+    perRoomBudget: number;
+    minIncrement: number;
+    completedAt: string | null;
+  };
+  items: ResolvedItem[];
+  participants: unknown[];
   winners: ResolvedItem[];
 }
 

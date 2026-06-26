@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth-context";
 import { jsonError, unauthorized } from "@/lib/api-errors";
 import { prisma } from "@/lib/prisma";
-import { mapItem, mapParticipant } from "@/lib/room-mappers";
+import { mapParticipant } from "@/lib/room-mappers";
 
 export async function GET(
   request: NextRequest,
@@ -31,16 +31,27 @@ export async function GET(
 
     const winners = await prisma.winner.findMany({
       where: { roomId },
-      include: { user: { select: { name: true } }, item: { select: { name: true } } },
+      include: { user: { select: { name: true } }, item: true },
       orderBy: { item: { slotIndex: "asc" } },
     });
 
-    const soldItems = room.items
+    const winnerMap = new Map(winners.map((w) => [w.itemId, w]));
+
+    const resolvedItems = room.items
       .filter((i) => i.status === "SOLD" || i.status === "UNSOLD")
-      .map((i) => ({
-        ...mapItem(i),
-        winnerName: winners.find((w) => w.itemId === i.id)?.user.name ?? null,
-      }));
+      .map((i) => {
+        const winner = winnerMap.get(i.id);
+        return {
+          itemId: i.id,
+          slotIndex: i.slotIndex,
+          name: i.name,
+          status: i.status,
+          winnerId: winner?.userId ?? null,
+          winnerName: winner?.user.name ?? null,
+          winningBid: winner?.amount ?? null,
+          resolvedAt: winner?.wonAt.toISOString() ?? i.resolvedAt?.toISOString() ?? room.completedAt?.toISOString() ?? new Date().toISOString(),
+        };
+      });
 
     return NextResponse.json({
       room: {
@@ -53,17 +64,11 @@ export async function GET(
         minIncrement: room.minIncrement,
         completedAt: room.completedAt?.toISOString() ?? null,
       },
-      items: soldItems,
+      items: resolvedItems,
       participants: room.participants.map((p) =>
         mapParticipant(p, room.perRoomBudget),
       ),
-      winners: winners.map((w) => ({
-        itemId: w.itemId,
-        itemName: w.item.name,
-        userId: w.userId,
-        userName: w.user.name,
-        amount: w.amount,
-      })),
+      winners: resolvedItems,
     });
   } catch (err) {
     return jsonError(err);

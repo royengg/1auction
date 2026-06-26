@@ -34,6 +34,7 @@ export async function createRoom(
             perRoomBudget: parsed.perRoomBudget,
             minIncrement: parsed.minIncrement,
             itemDurationSeconds: parsed.itemDurationSeconds,
+            maxBidders: parsed.maxBidders,
             items: {
               create: parsed.items.map((item, slotIndex) => ({
                 slotIndex,

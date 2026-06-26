@@ -263,44 +263,57 @@ export default function AuctionRoomPage() {
                   {/* Bid controls */}
                   {!isAuctioneer && (
                     <div className="mt-6 space-y-4">
-                      {/* Quick bid buttons */}
-                      <div className="flex gap-2">
-                        {quickBids.map((amount, i) => (
-                          <Button
-                            key={i}
-                            variant="outline"
-                            className="flex-1"
-                            disabled={isPaused || isExpired}
-                            onClick={() => handleQuickBid(amount)}
-                          >
-                            +${(amount - highBidAmount).toLocaleString()}
-                          </Button>
-                        ))}
-                      </div>
+                      {highBid?.userId === session?.user?.id ? (
+                        <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-4 text-center">
+                          <p className="text-sm font-medium text-amber-400">
+                            You are the highest bidder
+                          </p>
+                          <p className="mt-1 text-xs text-amber-400/70">
+                            Wait for another bidder to outbid you before placing a new bid
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          {/* Quick bid buttons */}
+                          <div className="flex gap-2">
+                            {quickBids.map((amount, i) => (
+                              <Button
+                                key={i}
+                                variant="outline"
+                                className="flex-1"
+                                disabled={isPaused || isExpired}
+                                onClick={() => handleQuickBid(amount)}
+                              >
+                                +${(amount - highBidAmount).toLocaleString()}
+                              </Button>
+                            ))}
+                          </div>
 
-                      {/* Custom bid */}
-                      <form onSubmit={handleCustomBid} className="flex gap-2">
-                        <Input
-                          type="number"
-                          min={minimumBid}
-                          value={customBid}
-                          onChange={(e) => setCustomBid(e.target.value)}
-                          placeholder={`Minimum: $${minimumBid.toLocaleString()}`}
-                          disabled={isPaused || isExpired}
-                          className="flex-1"
-                        />
-                        <Button
-                          type="submit"
-                          disabled={
-                            isPaused ||
-                            isExpired ||
-                            !customBid ||
-                            Number(customBid) < minimumBid
-                          }
-                        >
-                          Place Bid
-                        </Button>
-                      </form>
+                          {/* Custom bid */}
+                          <form onSubmit={handleCustomBid} className="flex gap-2">
+                            <Input
+                              type="number"
+                              min={minimumBid}
+                              value={customBid}
+                              onChange={(e) => setCustomBid(e.target.value)}
+                              placeholder={`Minimum: $${minimumBid.toLocaleString()}`}
+                              disabled={isPaused || isExpired}
+                              className="flex-1"
+                            />
+                            <Button
+                              type="submit"
+                              disabled={
+                                isPaused ||
+                                isExpired ||
+                                !customBid ||
+                                Number(customBid) < minimumBid
+                              }
+                            >
+                              Place Bid
+                            </Button>
+                          </form>
+                        </>
+                      )}
                     </div>
                   )}
 
@@ -365,7 +378,7 @@ export default function AuctionRoomPage() {
             <div className="border-b border-border p-4 pb-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-sm font-semibold">
-                  {presence.length > 0 ? presence.length : roomState?.bidders?.length ?? 0}{" "}
+                  {(presence?.length ?? 0) > 0 ? presence?.length : roomState?.bidders?.length ?? 0}{" "}
                   Participants
                 </h3>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />

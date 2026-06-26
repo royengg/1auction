@@ -165,8 +165,8 @@ export function useRoomState(
       setChatMessages((prev) => [...prev, message]);
     }
 
-    function onPresence({ users }: { users: string[] }) {
-      setPresence(users);
+    function onPresence({ userIds }: { userIds: string[] }) {
+      setPresence(userIds ?? []);
     }
 
     function onError({ message }: { message: string }) {

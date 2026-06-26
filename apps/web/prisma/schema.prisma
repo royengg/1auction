@@ -112,6 +112,7 @@ model Room {
   perRoomBudget    Int
   minIncrement     Int
   itemDurationSeconds Int
+  maxBidders       Int            @default(6)
   activeItemIndex  Int?
   completedAt      DateTime?
   createdAt        DateTime       @default(now())
