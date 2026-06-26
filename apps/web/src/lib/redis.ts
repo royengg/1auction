@@ -32,3 +32,10 @@ export const Keys = {
   resolved: (roomId: string) => `auction:room:${roomId}:resolved`,
   presence: (roomId: string) => `auction:room:${roomId}:presence`,
 } as const;
+
+export const CONTROL_CHANNEL = "auction:control";
+
+export async function publishControl(msg: unknown): Promise<number> {
+  const redis = getRedis();
+  return redis.publish(CONTROL_CHANNEL, JSON.stringify(msg));
+}

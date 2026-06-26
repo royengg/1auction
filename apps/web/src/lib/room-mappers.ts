@@ -42,7 +42,7 @@ export function mapItem(item: PrismaItem): AuctionItem {
 }
 
 export function mapParticipant(
-  p: PrismaParticipant & { user?: PrismaUser },
+  p: PrismaParticipant & { user?: { name: string; activeRole?: PrismaUser["activeRole"] } },
   budget: number,
 ): RoomParticipant {
   const reserved = p.reserved;

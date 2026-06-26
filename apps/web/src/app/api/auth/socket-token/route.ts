@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       role: (session.user.activeRole as string | undefined) ?? "BIDDER",
     },
     serverEnv.jwtSecret,
-    { expiresIn: "1h" },
+    { expiresIn: "7d" },
   );
 
   return NextResponse.json({ token });

@@ -35,8 +35,8 @@ export const auth = betterAuth({
     cookiePrefix: "1auction",
   },
   rateLimit: {
-    enabled: true,
+    enabled: process.env.NODE_ENV === "production",
     window: 10,
-    max: 20,
+    max: 100,
   },
 });

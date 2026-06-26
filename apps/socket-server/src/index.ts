@@ -15,6 +15,8 @@ import {
 } from "./auctioneer.js";
 import { registerChat } from "./chat.js";
 import { markAbsent, broadcastPresence } from "./presence.js";
+import { rescheduleAllTimers } from "./timer.js";
+import { registerControlSubscriber } from "./control.js";
 import { ClientEvent, type Ack } from "@auction/shared";
 
 const app = express();
@@ -112,6 +114,9 @@ async function start(): Promise<void> {
   server.listen(env.port, () => {
     console.log(`[socket-server] listening on :${env.port}`);
   });
+  registerControlSubscriber(io);
+  await rescheduleAllTimers(io);
+  console.log("[socket-server] boot reschedule complete");
 }
 
 async function shutdown(signal: string): Promise<void> {

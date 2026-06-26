@@ -14,6 +14,13 @@ export interface User {
   createdAt: string;
 }
 
+export interface SessionUser {
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
+}
+
 export interface RoomParticipant {
   userId: string;
   name: string;
@@ -104,4 +111,20 @@ export interface ChatMessage {
   userName: string;
   text: string;
   sentAt: string;
+}
+
+export interface CreateRoomItemInput {
+  name: string;
+  description: string;
+  imageUrl: string | null;
+  startingPrice: number;
+}
+
+export interface CreateRoomInput {
+  title: string;
+  description?: string;
+  perRoomBudget: number;
+  minIncrement: number;
+  itemDurationSeconds: number;
+  items: CreateRoomItemInput[];
 }

@@ -1,5 +1,6 @@
 import type { Server, Socket } from "socket.io";
 
+import { prisma } from "./prisma.js";
 import {
   buildRoomSnapshot,
   getRedisBidders,
@@ -7,15 +8,8 @@ import {
   loadParticipants,
   loadRoomMeta,
 } from "./room-state.js";
-import {
-  markPresent,
-  broadcastPresence,
-} from "./presence.js";
-import {
-  ServerEvent,
-  type Ack,
-  type LiveRoomState,
-} from "@auction/shared";
+import { markPresent, broadcastPresence } from "./presence.js";
+import { type Ack, type LiveRoomState, ServerEvent } from "@auction/shared";
 
 export async function handleJoinRoom(
   io: Server,
@@ -48,6 +42,25 @@ export async function handleJoinRoom(
     return;
   }
 
+  const participantRow = await prisma.roomParticipant.findUnique({
+    where: { roomId_userId: { roomId, userId: user.id } },
+    select: { id: true },
+  });
+
+  if (meta.status === "AUCTION" && meta.auctioneerId !== user.id) {
+    if (!participantRow) {
+      ack({
+        ok: false,
+        error: {
+          message:
+            "This auction is already in progress. You can only join rooms in the LOBBY phase.",
+          reason: "ROOM_NOT_JOINABLE",
+        },
+      });
+      return;
+    }
+  }
+
   const redisBidders = await getRedisBidders(roomId);
   if (redisBidders.length === 0) {
     const participants = await loadParticipants(roomId, meta.perRoomBudget);
@@ -72,15 +85,16 @@ export async function handleJoinRoom(
   await broadcastPresence(io, roomId);
 
   io.to(roomId).emit(ServerEvent.PARTICIPANT_UPDATE, {
-    participant: snapshot.bidders.find((b) => b.userId === user.id) ?? {
-      userId: user.id,
-      name: user.name,
-      role: user.role,
-      budget: 0,
-      reserved: 0,
-      available: 0,
-      spent: 0,
-    },
+    participant:
+      snapshot.bidders.find((b) => b.userId === user.id) ?? {
+        userId: user.id,
+        name: user.name,
+        role: user.role,
+        budget: 0,
+        reserved: 0,
+        available: 0,
+        spent: 0,
+      },
   });
 
   ack({ ok: true, data: snapshot });

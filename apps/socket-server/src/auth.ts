@@ -1,12 +1,8 @@
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import { env } from "./env.js";
+import type { SessionUser } from "@auction/shared";
 
-export interface SessionUser {
-  id: string;
-  email: string;
-  name: string;
-  role: "AUCTIONEER" | "BIDDER";
-}
+export type { SessionUser };
 
 export interface AuthenticatedSocket {
   data: {
