@@ -90,10 +90,10 @@ export default function AuctionRoomPage() {
     : activeItem?.startingPrice ?? 0;
 
   const quickBids = [
-    minimumBid,
     minimumBid + minIncrement,
-    minimumBid + minIncrement * 4,
-  ];
+    minimumBid + minIncrement * 2,
+    minimumBid + minIncrement * 5,
+  ].filter((amount) => amount > (activeItem?.startingPrice ?? 0));
 
   async function handleSubmitBid(amount: number) {
     setBidError(null);

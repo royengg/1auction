@@ -148,7 +148,7 @@ export default function CreateAuctionPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-3xl space-y-8">
+      <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-8">
         {/* Event Details */}
         <div className="rounded-lg border border-border bg-card p-6">
           <h2 className="mb-4 font-display text-lg font-semibold text-foreground">

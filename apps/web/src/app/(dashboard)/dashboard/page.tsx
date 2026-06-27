@@ -43,7 +43,9 @@ export default function DashboardPage() {
       (r) => r.code.toLowerCase() === code.toLowerCase(),
     );
     if (!targetRoom) {
-      setJoinError("No room found with that code. Check the code and try again.");
+      setJoinError(
+        "No room found with that code. Check the code and try again.",
+      );
       return;
     }
 
@@ -56,9 +58,7 @@ export default function DashboardPage() {
         router.push(`/rooms/${targetRoom.id}/lobby`);
       }
     } catch (err) {
-      setJoinError(
-        err instanceof Error ? err.message : "Failed to join room.",
-      );
+      setJoinError(err instanceof Error ? err.message : "Failed to join room.");
     } finally {
       setJoining(false);
     }
@@ -100,7 +100,7 @@ export default function DashboardPage() {
               <Input
                 value={codeInput}
                 onChange={(e) => setCodeInput(e.target.value)}
-                placeholder="Enter room code (e.g. 3098)"
+                placeholder="Enter room code"
                 maxLength={4}
                 className="max-w-[200px] font-mono text-lg tracking-widest"
                 required
@@ -126,8 +126,7 @@ export default function DashboardPage() {
             <StatsCard
               label="My Auctions"
               value={
-                rooms.filter((r) => r.auctioneerId === session?.user?.id)
-                  .length
+                rooms.filter((r) => r.auctioneerId === session?.user?.id).length
               }
               icon={<Gavel className="h-5 w-5" />}
             />
@@ -190,10 +189,7 @@ export default function DashboardPage() {
               : "No active auctions right now. Check back soon or join with a code."}
           </p>
           {isAuctioneer && (
-            <Button
-              className="mt-4"
-              onClick={() => router.push("/rooms/new")}
-            >
+            <Button className="mt-4" onClick={() => router.push("/rooms/new")}>
               <Gavel className="mr-2 h-4 w-4" />
               Create Auction
             </Button>

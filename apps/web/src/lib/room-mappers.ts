@@ -78,6 +78,25 @@ export function buildRoomSummary(room: CountRoom): RoomSummary {
 }
 
 export function buildRoomDetail(room: DetailRoom): RoomDetail {
+  const participants = room.participants.map((p) =>
+    mapParticipant(p, room.perRoomBudget),
+  );
+
+  // Include auctioneer in participants list if not already present
+  const auctioneerId = room.auctioneerId;
+  const hasAuctioneer = participants.some((p) => p.userId === auctioneerId);
+  if (!hasAuctioneer) {
+    participants.unshift({
+      userId: auctioneerId,
+      name: room.auctioneer.name,
+      role: "AUCTIONEER",
+      budget: 0,
+      reserved: 0,
+      available: 0,
+      spent: 0,
+    });
+  }
+
   return {
     ...buildRoomSummary({
       ...room,
@@ -85,9 +104,7 @@ export function buildRoomDetail(room: DetailRoom): RoomDetail {
       participants: room.participants,
     }),
     items: room.items.map(mapItem),
-    participants: room.participants.map((p) =>
-      mapParticipant(p, room.perRoomBudget),
-    ),
+    participants,
     activeItemIndex: room.activeItemIndex,
   };
 }

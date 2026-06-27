@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, LogOut, Users, Copy, Check, Play, ArrowRight } from "lucide-react";
+import { Loader2, LogOut, Users, Copy, Check, Play, ArrowRight, Trash2 } from "lucide-react";
 
 import { apiClient } from "@/lib/api-client";
 import { useSocket } from "@/hooks/use-socket";
@@ -33,6 +33,7 @@ export default function LobbyPage() {
 
   const [copied, setCopied] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
@@ -41,6 +42,8 @@ export default function LobbyPage() {
   const { data: roomDetail, isLoading } = useQuery({
     queryKey: ["room", roomId],
     queryFn: () => apiClient.getRoom(roomId),
+    refetchInterval: 3000,
+    refetchIntervalInBackground: true,
   });
 
   const userRole = role ?? "BIDDER";
@@ -102,6 +105,21 @@ export default function LobbyPage() {
     }
   }
 
+  async function handleCancel() {
+    if (!confirm("Are you sure you want to cancel this auction? This will delete the room and all associated data.")) {
+      return;
+    }
+    setCancelling(true);
+    try {
+      await apiClient.cancelAuction(roomId);
+      router.push("/dashboard");
+    } catch (err) {
+      setJoinError(err instanceof Error ? err.message : "Failed to cancel auction.");
+    } finally {
+      setCancelling(false);
+    }
+  }
+
   if (isLoading || !roomDetail) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -110,9 +128,9 @@ export default function LobbyPage() {
     );
   }
 
-  const bidderCount = roomState?.bidders?.filter(
-    (b) => b.role === "BIDDER",
-  ).length ?? roomDetail.participants.filter((p) => p.role === "BIDDER").length;
+  const bidderCount = roomDetail.participants.filter(
+    (p) => p.role === "BIDDER",
+  ).length;
 
   const canStart = isOwner || isAuctioneer;
 
@@ -123,12 +141,30 @@ export default function LobbyPage() {
         <h1 className="font-display text-xl font-bold tracking-tight text-foreground">
           1auction
         </h1>
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/dashboard">
-            <LogOut className="mr-2 h-4 w-4" />
-            Leave Lobby
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {isOwner && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              onClick={handleCancel}
+              disabled={cancelling}
+            >
+              {cancelling ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="mr-2 h-4 w-4" />
+              )}
+              Cancel Auction
+            </Button>
+          )}
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/dashboard">
+              <LogOut className="mr-2 h-4 w-4" />
+              Leave Lobby
+            </Link>
+          </Button>
+        </div>
       </header>
 
       {/* Centered content */}
@@ -218,49 +254,59 @@ export default function LobbyPage() {
                 </h3>
               </div>
               <span className="font-mono text-sm text-muted-foreground">
-                {bidderCount} / {AUCTION_ROOM.MAX_BIDDERS} READY
+                {roomDetail.participants.filter((p) => p.role === "BIDDER").length} / {roomDetail.maxBidders} READY
               </span>
             </div>
 
-            {roomState?.bidders && roomState.bidders.length > 0 ? (
+            {roomDetail.participants.length > 0 ? (
               <div className="space-y-3">
-                {roomState.bidders.map((participant) => (
-                  <div
-                    key={participant.userId}
-                    className="flex items-center gap-3 rounded-md bg-background p-3"
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-semibold text-primary">
-                      {participant.name
-                        .split(" ")
-                        .map((w) => w[0])
-                        .join("")
-                        .toUpperCase()
-                        .slice(0, 2)}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">
-                        {participant.name}
-                        {participant.userId === session?.user?.id && (
-                          <span className="ml-2 text-xs text-muted-foreground">
-                            (You)
-                          </span>
-                        )}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <span className="relative flex h-2 w-2">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          Online
-                        </span>
+                {roomDetail.participants.map((participant) => {
+                  const isOnline = roomState?.bidders?.some(
+                    (b) => b.userId === participant.userId,
+                  );
+                  return (
+                    <div
+                      key={participant.userId}
+                      className="flex items-center gap-3 rounded-md bg-background p-3"
+                    >
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-semibold text-primary">
+                        {participant.name
+                          .split(" ")
+                          .map((w) => w[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2)}
                       </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">
+                          {participant.name}
+                          {participant.userId === session?.user?.id && (
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              (You)
+                            </span>
+                          )}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`relative inline-flex h-2 w-2 rounded-full ${
+                              isOnline ? "bg-emerald-500" : "bg-slate-600"
+                            }`}
+                          >
+                            {isOnline && (
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                            )}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {isOnline ? "Online" : "Joined"}
+                          </span>
+                        </div>
+                      </div>
+                      {participant.role === "AUCTIONEER" && (
+                        <Badge variant="warning">HOST</Badge>
+                      )}
                     </div>
-                    {participant.role === "AUCTIONEER" && (
-                      <Badge variant="warning">HOST</Badge>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-center">

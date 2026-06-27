@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Bell, ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ interface TopNavigationProps {
 export function TopNavigation({ role }: TopNavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: session } = useSession();
   const [switching, setSwitching] = useState(false);
 
@@ -51,6 +53,7 @@ export function TopNavigation({ role }: TopNavigationProps) {
     setSwitching(true);
     try {
       await apiClient.switchRole(newRole);
+      await queryClient.invalidateQueries({ queryKey: ["role"] });
       router.refresh();
     } catch {
       // error handled by axios interceptor
@@ -154,13 +157,16 @@ export function TopNavigation({ role }: TopNavigationProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
+            <DropdownMenuItem
+              disabled={isInRoom || switching}
+              className={isInRoom ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
+            >
               <button
                 onClick={handleRoleSwitch}
                 disabled={isInRoom || switching}
-                className="w-full cursor-pointer"
+                className="w-full text-left"
               >
-                Switch to {newRole.toLowerCase()}
+                {isInRoom ? "Role switching locked" : `Switch to ${newRole.toLowerCase()}`}
               </button>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

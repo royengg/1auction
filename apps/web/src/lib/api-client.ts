@@ -90,6 +90,14 @@ export const apiClient = {
     }
   },
 
+  async cancelAuction(roomId: string): Promise<void> {
+    try {
+      await api.delete(`/api/rooms/${roomId}`);
+    } catch (err) {
+      handleError(err);
+    }
+  },
+
   async getResults(roomId: string): Promise<ResolvedItem[]> {
     try {
       const { data } = await api.get<ResultsResponse>(`/api/rooms/${roomId}/results`);
