@@ -4,7 +4,16 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, LogOut, Users, Copy, Check, Play, ArrowRight, Trash2 } from "lucide-react";
+import {
+  Loader2,
+  LogOut,
+  Users,
+  Copy,
+  Check,
+  Play,
+  ArrowRight,
+  Trash2,
+} from "lucide-react";
 
 import { apiClient } from "@/lib/api-client";
 import { useSocket } from "@/hooks/use-socket";
@@ -39,7 +48,11 @@ export default function LobbyPage() {
   const [joinError, setJoinError] = useState<string | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
 
-  const { data: roomDetail, isLoading } = useQuery({
+  const {
+    data: roomDetail,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["room", roomId],
     queryFn: () => apiClient.getRoom(roomId),
     refetchInterval: 3000,
@@ -88,9 +101,7 @@ export default function LobbyPage() {
       // Invalidate room query to refresh participant list
       queryClient.invalidateQueries({ queryKey: ["room", roomId] });
     } catch (err) {
-      setJoinError(
-        err instanceof Error ? err.message : "Invalid room code.",
-      );
+      setJoinError(err instanceof Error ? err.message : "Invalid room code.");
     } finally {
       setJoining(false);
     }
@@ -106,7 +117,11 @@ export default function LobbyPage() {
   }
 
   async function handleCancel() {
-    if (!confirm("Are you sure you want to cancel this auction? This will delete the room and all associated data.")) {
+    if (
+      !confirm(
+        "Are you sure you want to cancel this auction? This will delete the room and all associated data.",
+      )
+    ) {
       return;
     }
     setCancelling(true);
@@ -114,16 +129,35 @@ export default function LobbyPage() {
       await apiClient.cancelAuction(roomId);
       router.push("/dashboard");
     } catch (err) {
-      setJoinError(err instanceof Error ? err.message : "Failed to cancel auction.");
+      setJoinError(
+        err instanceof Error ? err.message : "Failed to cancel auction.",
+      );
     } finally {
       setCancelling(false);
     }
   }
 
-  if (isLoading || !roomDetail) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (isError || !roomDetail) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-4 text-center">
+        <h2 className="font-display text-2xl font-bold text-foreground">
+          Room Not Found
+        </h2>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          This auction room no longer exists. It may have been deleted by the
+          auctioneer or removed from the system.
+        </p>
+        <Button asChild>
+          <Link href="/dashboard">Back to Dashboard</Link>
+        </Button>
       </div>
     );
   }
@@ -138,9 +172,9 @@ export default function LobbyPage() {
     <div className="flex min-h-screen flex-col bg-background">
       {/* Top bar */}
       <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6">
-        <h1 className="font-display text-xl font-bold tracking-tight text-foreground">
+        {/* <h1 className="font-display text-xl font-bold tracking-tight text-foreground">
           1auction
-        </h1>
+        </h1> */}
         <div className="flex items-center gap-2">
           {isOwner && (
             <Button
@@ -254,7 +288,11 @@ export default function LobbyPage() {
                 </h3>
               </div>
               <span className="font-mono text-sm text-muted-foreground">
-                {roomDetail.participants.filter((p) => p.role === "BIDDER").length} / {roomDetail.maxBidders} READY
+                {
+                  roomDetail.participants.filter((p) => p.role === "BIDDER")
+                    .length
+                }{" "}
+                / {roomDetail.maxBidders} READY
               </span>
             </div>
 
@@ -337,9 +375,7 @@ export default function LobbyPage() {
           {/* Error messages */}
           {(socketError || roomError) && (
             <Alert variant="destructive">
-              <AlertDescription>
-                {socketError ?? roomError}
-              </AlertDescription>
+              <AlertDescription>{socketError ?? roomError}</AlertDescription>
             </Alert>
           )}
 
@@ -371,9 +407,8 @@ export default function LobbyPage() {
               </Button>
               {bidderCount < AUCTION_ROOM.MIN_BIDDERS_TO_START && (
                 <p className="text-sm text-muted-foreground">
-                  At least{" "}
-                  {AUCTION_ROOM.MIN_BIDDERS_TO_START} bidder is required to
-                  start
+                  At least {AUCTION_ROOM.MIN_BIDDERS_TO_START} bidder is
+                  required to start
                 </p>
               )}
               {!connected && (

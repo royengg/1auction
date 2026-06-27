@@ -21,7 +21,7 @@ export default function ResultsPage() {
   const { socket, authenticated } = useSocket();
   const { roomState } = useRoomState(authenticated ? socket : null, roomId);
 
-  const { data: roomDetail, isLoading } = useQuery({
+  const { data: roomDetail, isLoading, isError } = useQuery({
     queryKey: ["room", roomId],
     queryFn: () => apiClient.getRoom(roomId),
   });
@@ -40,10 +40,27 @@ export default function ResultsPage() {
     }
   }, [roomState?.status, roomId, router]);
 
-  if (isLoading || !roomDetail) {
+  if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <p className="text-sm text-muted-foreground">Loading results…</p>
+      </div>
+    );
+  }
+
+  if (isError || !roomDetail) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
+        <h2 className="font-display text-2xl font-bold text-foreground">
+          Room Not Found
+        </h2>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          This auction room no longer exists. It may have been deleted by the
+          auctioneer or removed from the system.
+        </p>
+        <Button asChild>
+          <Link href="/dashboard">Back to Dashboard</Link>
+        </Button>
       </div>
     );
   }

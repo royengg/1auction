@@ -365,7 +365,8 @@ export async function resolveItem(
         );
         await redis.hset(biddersKey(roomId), winnerId!, JSON.stringify(winner));
         winnerName = winner.name;
-      } catch {
+      } catch (err) {
+        console.error("[resolveItem] failed to update winner redis state:", err);
       }
     }
   }
@@ -389,35 +390,35 @@ export async function resolveItem(
 
   await redis.rpush(resolvedListKey(roomId), JSON.stringify(resolved));
 
-  await prisma.auctionItem
-    .update({
-      where: { id: item.id },
-      data: {
-        status: newStatus,
-        winnerId,
-        winningBid,
-        resolvedAt: new Date(),
-      },
-    })
-    .catch(() => {});
-
-  if (hasWinner && winnerId) {
-    await prisma.winner
-      .upsert({
-        where: { roomId_itemId: { roomId, itemId: item.id } },
-        update: {},
-        create: { roomId, itemId: item.id, userId: winnerId, amount: highAmount },
-      })
-      .catch(() => {});
-    await prisma.roomParticipant
-      .update({
-        where: { roomId_userId: { roomId, userId: winnerId } },
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.auctionItem.update({
+        where: { id: item.id },
         data: {
-          reserved: { decrement: highAmount },
-          spent: { increment: highAmount },
+          status: newStatus,
+          winnerId,
+          winningBid,
+          resolvedAt: new Date(),
         },
-      })
-      .catch(() => {});
+      });
+
+      if (hasWinner && winnerId) {
+        await tx.winner.upsert({
+          where: { roomId_itemId: { roomId, itemId: item.id } },
+          update: {},
+          create: { roomId, itemId: item.id, userId: winnerId, amount: highAmount },
+        });
+        await tx.roomParticipant.update({
+          where: { roomId_userId: { roomId, userId: winnerId } },
+          data: {
+            reserved: { decrement: highAmount },
+            spent: { increment: highAmount },
+          },
+        });
+      }
+    });
+  } catch (err) {
+    console.error("[resolveItem] prisma transaction failed:", err);
   }
 
   return resolved;

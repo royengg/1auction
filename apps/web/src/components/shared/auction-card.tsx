@@ -27,14 +27,14 @@ export function AuctionCard({ room, viewerRole, isOwner }: AuctionCardProps) {
   const isLive = room.status === "AUCTION";
 
   const bidLabel = room.status === "COMPLETED"
-    ? "Final Bid"
+    ? "Status"
     : room.status === "AUCTION"
       ? "Current Bid"
       : "Starting Price";
 
-  const bidValue = room.status === "LOBBY"
-    ? room.perRoomBudget
-    : room.perRoomBudget;
+  const bidValue = room.status === "COMPLETED"
+    ? "Completed"
+    : `$${room.perRoomBudget.toLocaleString()}`;
 
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-primary/30">
@@ -99,7 +99,7 @@ export function AuctionCard({ room, viewerRole, isOwner }: AuctionCardProps) {
               {bidLabel}
             </p>
             <p className="font-display text-xl font-bold text-primary">
-              ${bidValue.toLocaleString()}
+              {bidValue}
             </p>
           </div>
           {isAuctioneer || isOwner ? (

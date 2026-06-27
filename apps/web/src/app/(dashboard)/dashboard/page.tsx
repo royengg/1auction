@@ -34,6 +34,12 @@ export default function DashboardPage() {
   const isAuctioneer = role === "AUCTIONEER";
   const rooms = data?.rooms ?? [];
 
+  const { data: stats } = useQuery({
+    queryKey: ["stats"],
+    queryFn: () => apiClient.getStats(),
+    enabled: !isAuctioneer,
+  });
+
   async function handleJoinByCode(e: React.FormEvent) {
     e.preventDefault();
     setJoinError(null);
@@ -145,17 +151,17 @@ export default function DashboardPage() {
           <>
             <StatsCard
               label="Active Bids"
-              value={0}
+              value={stats?.activeBids ?? 0}
               icon={<TrendingUp className="h-5 w-5" />}
             />
             <StatsCard
               label="Won Items"
-              value={0}
+              value={stats?.wonItems ?? 0}
               icon={<Trophy className="h-5 w-5" />}
             />
             <StatsCard
               label="Total Exposure"
-              value="$0"
+              value={`$${(stats?.totalExposure ?? 0).toLocaleString()}`}
               icon={<Wallet className="h-5 w-5" />}
             />
           </>

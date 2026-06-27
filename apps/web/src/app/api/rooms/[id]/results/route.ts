@@ -41,14 +41,18 @@ export async function GET(
       .filter((i) => i.status === "SOLD" || i.status === "UNSOLD")
       .map((i) => {
         const winner = winnerMap.get(i.id);
+        // Fallback to AuctionItem columns if Winner table is empty/missing
+        const finalWinnerId = winner?.userId ?? i.winnerId ?? null;
+        const finalWinnerName = winner?.user.name ?? null;
+        const finalWinningBid = winner?.amount ?? i.winningBid ?? null;
         return {
           itemId: i.id,
           slotIndex: i.slotIndex,
           name: i.name,
           status: i.status,
-          winnerId: winner?.userId ?? null,
-          winnerName: winner?.user.name ?? null,
-          winningBid: winner?.amount ?? null,
+          winnerId: finalWinnerId,
+          winnerName: finalWinnerName,
+          winningBid: finalWinningBid,
           resolvedAt: winner?.wonAt.toISOString() ?? i.resolvedAt?.toISOString() ?? room.completedAt?.toISOString() ?? new Date().toISOString(),
         };
       });

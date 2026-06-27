@@ -25,7 +25,12 @@ import { useSession, signOut } from "@/lib/auth-client";
 import { apiClient } from "@/lib/api-client";
 import type { Role } from "@auction/shared";
 
-const topNavTabs = ["Live Auctions", "Upcoming", "Results", "Categories"] as const;
+const topNavTabs = [
+  "Live Auctions",
+  "Upcoming",
+  "Results",
+  "Categories",
+] as const;
 
 interface TopNavigationProps {
   role: Role;
@@ -156,19 +161,6 @@ export function TopNavigation({ role }: TopNavigationProps) {
                 </span>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              disabled={isInRoom || switching}
-              className={isInRoom ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
-            >
-              <button
-                onClick={handleRoleSwitch}
-                disabled={isInRoom || switching}
-                className="w-full text-left"
-              >
-                {isInRoom ? "Role switching locked" : `Switch to ${newRole.toLowerCase()}`}
-              </button>
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <button onClick={handleSignOut} className="w-full cursor-pointer">

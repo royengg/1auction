@@ -21,6 +21,12 @@ export interface RoleResponse {
   activeRole: Role;
 }
 
+export interface StatsResponse {
+  activeBids: number;
+  wonItems: number;
+  totalExposure: number;
+}
+
 export interface ResultsResponse {
   room: {
     id: string;
@@ -119,6 +125,15 @@ export const apiClient = {
   async switchRole(role: Role): Promise<RoleResponse> {
     try {
       const { data } = await api.patch<RoleResponse>("/api/me/role", { role });
+      return data;
+    } catch (err) {
+      handleError(err);
+    }
+  },
+
+  async getStats(): Promise<StatsResponse> {
+    try {
+      const { data } = await api.get<StatsResponse>("/api/me/stats");
       return data;
     } catch (err) {
       handleError(err);
