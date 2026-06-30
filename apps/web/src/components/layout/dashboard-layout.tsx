@@ -1,7 +1,6 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { AppSidebar } from "@/components/layout/app-sidebar";
 import { TopNavigation } from "@/components/layout/top-navigation";
 import { useRole } from "@/hooks/use-role";
 
@@ -17,14 +16,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <div className="hidden md:block">
-        <AppSidebar role={role} />
-      </div>
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <TopNavigation role={role} />
-        <main className="flex-1 overflow-y-auto">{children}</main>
-      </div>
+    <div className="flex min-h-screen flex-col bg-background">
+      <TopNavigation role={role} />
+      <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
 }

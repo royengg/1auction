@@ -3,25 +3,25 @@ import "./globals.css";
 import { QueryProvider } from "@/lib/query-provider";
 
 export const metadata: Metadata = {
-  title: "Interactive Auction Hub — Live Auction Rooms",
-  description:
-    "A realtime auction platform. Create a room, list your items, and let bidders compete live.",
+ title: "Interactive Auction Hub — Live Auction Rooms",
+ description:
+  "A realtime auction platform. Create a room, list your items, and let bidders compete live.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0F172A",
+ themeColor: "#F4F4F4",
 };
 
 export default function RootLayout({
-  children,
+ children,
 }: {
-  children: React.ReactNode;
+ children: React.ReactNode;
 }) {
-  return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="min-h-screen bg-background font-sans antialiased">
-        <QueryProvider>{children}</QueryProvider>
-      </body>
-    </html>
-  );
+ return (
+  <html lang="en" suppressHydrationWarning>
+   <body className="min-h-screen bg-background font-sans antialiased">
+    <QueryProvider>{children}</QueryProvider>
+   </body>
+  </html>
+ );
 }

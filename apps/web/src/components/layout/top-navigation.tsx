@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { Bell, ChevronDown } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -15,21 +15,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useSession, signOut } from "@/lib/auth-client";
 import { apiClient } from "@/lib/api-client";
 import type { Role } from "@auction/shared";
 
 const topNavTabs = [
-  "Live Auctions",
-  "Upcoming",
-  "Results",
-  "Categories",
+  { label: "Live", href: "/dashboard?filter=live" },
+  { label: "Upcoming", href: "/dashboard?filter=upcoming" },
+  { label: "Results", href: "/dashboard?filter=results" },
+  { label: "Dashboard", href: "/dashboard" },
 ] as const;
 
 interface TopNavigationProps {
@@ -73,83 +67,105 @@ export function TopNavigation({ role }: TopNavigationProps) {
   }
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6">
+    <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6 lg:px-10">
       {/* Logo */}
       <div className="flex items-center gap-8">
-        <h1 className="font-display text-xl font-bold tracking-tight text-foreground">
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="font-display text-xl font-bold tracking-tight text-primary"
+        >
           1auction
-        </h1>
+        </button>
 
         {/* Top nav tabs */}
         <nav className="hidden md:flex">
           <ul className="flex items-center gap-1">
-            {topNavTabs.map((tab) => (
-              <li key={tab}>
-                <button className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
-                  {tab}
-                </button>
-              </li>
-            ))}
+            {topNavTabs.map((tab) => {
+              const isActive =
+                tab.href === "/dashboard"
+                  ? pathname === "/dashboard" || pathname === "/"
+                  : pathname === tab.href;
+              return (
+                <li key={tab.label}>
+                  <button
+                    onClick={() => router.push(tab.href)}
+                    className={cn(
+                      "relative px-3 py-1.5 text-sm font-medium transition-colors",
+                      isActive
+                        ? "text-foreground"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {tab.label}
+                    {isActive && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary" />
+                    )}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </nav>
       </div>
 
       {/* Right section */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
+        {/* Search */}
+        <div className="hidden items-center gap-2 border border-border px-3 py-1.5 sm:flex">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search..."
+            className="w-32 border-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground lg:w-48"
+          />
+        </div>
+
         {/* Role toggle */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleRoleSwitch}
-                disabled={isInRoom || switching}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium transition-colors",
-                  isInRoom
-                    ? "cursor-not-allowed opacity-50"
-                    : "hover:bg-accent",
-                )}
-              >
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-xs font-semibold",
-                    role === "AUCTIONEER"
-                      ? "bg-emerald-500/10 text-emerald-400"
-                      : "bg-blue-500/10 text-blue-400",
-                  )}
-                >
-                  {role === "AUCTIONEER" ? "Auctioneer" : "Bidder"}
-                </span>
-                <span className="text-muted-foreground">/</span>
-                <span className="text-xs text-muted-foreground">
-                  {newRole === "AUCTIONEER" ? "Auctioneer" : "Bidder"}
-                </span>
-              </button>
-            </TooltipTrigger>
-            {isInRoom && (
-              <TooltipContent>
-                Role switching is locked during an active auction
-              </TooltipContent>
+        <button
+          onClick={handleRoleSwitch}
+          disabled={isInRoom || switching}
+          className={cn(
+            "flex items-center overflow-hidden border border-border text-xs font-medium tracking-[0.2em] uppercase",
+            isInRoom && "cursor-not-allowed opacity-50",
+          )}
+        >
+          <span
+            className={cn(
+              "px-4 py-2",
+              role === "AUCTIONEER"
+                ? "bg-primary text-primary-foreground"
+                : "bg-card text-muted-foreground",
             )}
-          </Tooltip>
-        </TooltipProvider>
+          >
+            AUCTIONEER
+          </span>
+          <span
+            className={cn(
+              "px-4 py-2",
+              role === "BIDDER"
+                ? "bg-primary text-primary-foreground"
+                : "bg-card text-muted-foreground",
+            )}
+          >
+            BIDDER
+          </span>
+        </button>
 
         {/* Notifications */}
-        <button className="relative rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+        <button className="relative p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
           <Bell className="h-5 w-5" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
+          <span className="absolute right-1 top-1 h-2 w-2 bg-primary" />
         </button>
 
         {/* Profile dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 rounded-md p-1 transition-colors hover:bg-accent">
+            <button className="flex items-center gap-2 transition-colors hover:bg-muted">
               <Avatar className="h-8 w-8 border border-border">
                 <AvatarFallback className="bg-muted text-xs text-primary">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">

@@ -1,18 +1,31 @@
 import Link from "next/link";
-import { Lock, Users, Clock, TrendingUp } from "lucide-react";
+import { ImageIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { RoomSummary, RoomStatus } from "@auction/shared";
 
-function statusBadge(status: RoomStatus) {
+function StatusBadge({ status }: { status: RoomStatus }) {
   switch (status) {
     case "AUCTION":
-      return <Badge variant="live">LIVE</Badge>;
+      return (
+        <span className="inline-flex items-center gap-1.5  bg-primary/10 px-2 py-1 font-mono text-xs uppercase tracking-wider text-primary">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+          LIVE
+        </span>
+      );
     case "LOBBY":
-      return <Badge variant="warning">UPCOMING</Badge>;
+      return (
+        <span className="inline-flex items-center  bg-muted px-2 py-1 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+          UPCOMING
+        </span>
+      );
     case "COMPLETED":
-      return <Badge variant="muted">COMPLETED</Badge>;
+      return (
+        <span className="inline-flex items-center  bg-muted px-2 py-1 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+          COMPLETED
+        </span>
+      );
   }
 }
 
@@ -25,107 +38,87 @@ interface AuctionCardProps {
 export function AuctionCard({ room, viewerRole, isOwner }: AuctionCardProps) {
   const isAuctioneer = viewerRole === "AUCTIONEER";
   const isLive = room.status === "AUCTION";
+  const isCompleted = room.status === "COMPLETED";
 
-  const bidLabel = room.status === "COMPLETED"
-    ? "Status"
-    : room.status === "AUCTION"
+  const bidLabel = isCompleted
+    ? "Final Bid"
+    : isLive
       ? "Current Bid"
-      : "Starting Price";
+      : "Starting Bid";
 
-  const bidValue = room.status === "COMPLETED"
-    ? "Completed"
+  const bidValue = isCompleted
+    ? "—"
     : `$${room.perRoomBudget.toLocaleString()}`;
 
+  // Generate a lot number from the room code or id
+  const lotNumber = room.code || "001";
+
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-primary/30">
-      {/* Image / placeholder */}
-      <div className="relative h-44 overflow-hidden bg-muted">
-        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
-          <span className="font-display text-4xl font-bold text-muted-foreground/20">
-            {room.title.slice(0, 2).toUpperCase()}
-          </span>
+    <div className="group flex flex-col overflow-hidden  border border-border bg-card transition-all hover:border-primary/30">
+      {/* Image */}
+      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-100 to-neutral-200">
+          <ImageIcon className="h-10 w-10 text-muted-foreground/30" />
         </div>
 
-        {/* Top badges */}
-        <div className="absolute left-3 top-3 flex gap-2">
-          {statusBadge(room.status)}
+        {/* Status badge */}
+        <div className="absolute left-3 top-3">
+          <StatusBadge status={room.status} />
         </div>
-        <div className="absolute right-3 top-3">
-          <Badge variant="muted">BIDDING</Badge>
-        </div>
-
-        {/* Auctioneer lock overlay */}
-        {isAuctioneer && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/60 opacity-0 transition-opacity group-hover:opacity-100">
-            <div className="flex flex-col items-center gap-2">
-              <Lock className="h-6 w-6 text-foreground" />
-              <span className="text-sm font-medium text-foreground">
-                Admin Lock
-              </span>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Content */}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="font-display text-lg font-semibold text-foreground">
-          {room.title}
-        </h3>
-        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-          {room.description || "No description provided."}
-        </p>
-
-        {/* Stats row */}
-        <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <Users className="h-3.5 w-3.5" />
-            {room.bidderCount} / 6
-          </span>
-          <span className="flex items-center gap-1.5">
-            <TrendingUp className="h-3.5 w-3.5" />
-            {room.itemCount} items
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5" />
-            {isLive ? "Live now" : "Scheduled"}
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-display text-lg font-semibold text-foreground">
+            {room.title}
+          </h3>
+          <span className="shrink-0  bg-muted px-2 py-0.5 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+            LOT {lotNumber}
           </span>
         </div>
 
         {/* Bid info + action */}
-        <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+        <div className="mt-4 flex items-end justify-between border-t border-border pt-4">
           <div>
-            <p className="font-mono text-xs uppercase text-muted-foreground">
+            <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
               {bidLabel}
             </p>
-            <p className="font-display text-xl font-bold text-primary">
+            <p className="font-display text-xl font-bold text-foreground">
               {bidValue}
             </p>
           </div>
+
           {isAuctioneer || isOwner ? (
-            <Button variant="outline" size="sm" asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="font-mono text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground"
+            >
               <Link
                 href={
-                  room.status === "COMPLETED"
+                  isCompleted
                     ? `/rooms/${room.id}/results`
                     : `/rooms/${room.id}/lobby`
                 }
               >
-                {room.status === "COMPLETED" ? "View Results" : "Preview Room"}
+                {isCompleted ? "VIEW RESULTS" : "MANAGE"}
               </Link>
             </Button>
           ) : (
             <Button
               size="sm"
-              disabled={room.status === "COMPLETED"}
-              asChild={room.status !== "COMPLETED"}
+              disabled={isCompleted}
+              asChild={!isCompleted}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {room.status === "COMPLETED" ? (
-                <span>Ended</span>
+              {isCompleted ? (
+                <span>ENDED</span>
               ) : isLive ? (
-                <Link href={`/rooms/${room.id}/auction`}>Join Room</Link>
+                <Link href={`/rooms/${room.id}/auction`}>JOIN ROOM</Link>
               ) : (
-                <Link href={`/rooms/${room.id}/join`}>Join Room</Link>
+                <Link href={`/rooms/${room.id}/join`}>JOIN ROOM</Link>
               )}
             </Button>
           )}

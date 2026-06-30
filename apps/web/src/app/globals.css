@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,53 +6,51 @@
 
 @layer base {
   --font-hanken: "Hanken Grotesk", system-ui, sans-serif;
-  --font-inter: "Inter", system-ui, sans-serif;
   --font-jetbrains: "JetBrains Mono", monospace;
   :root {
-    /* Dark theme is the only theme for this application */
-    --background: 222 47% 11%;          /* #0F172A slate-950 */
-    --foreground: 210 40% 98%;          /* #F8FAFC slate-50  */
-    --card: 222 47% 14%;                /* #1E293B slate-800 */
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;             /* #0F172A slate-900 */
-    --popover-foreground: 210 40% 98%;
-    --primary: 160 84% 39%;             /* #10B981 emerald-500 */
-    --primary-foreground: 222 47% 11%;  /* dark text on emerald */
-    --secondary: 217 33% 17%;           /* #1E293B slate-800 */
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;                /* #1E293B */
-    --muted-foreground: 215 25% 65%;    /* #94A3B8 slate-400 */
-    --accent: 217 33% 14%;               /* #1E293B darker */
-    --accent-foreground: 210 40% 98%;
+    /* Light theme — new design system */
+    --background: 0 0% 96%;              /* #F4F4F4 off-white */
+    --foreground: 0 0% 7%;               /* #121212 near-black */
+    --card: 0 0% 100%;                   /* #FFFFFF white */
+    --card-foreground: 0 0% 7%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 7%;
+    --primary: 13 100% 60%;              /* #FF5733 coral */
+    --primary-foreground: 0 0% 100%;     /* white text on coral */
+    --secondary: 0 0% 7%;                /* #121212 */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;        /* #666666 */
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 7%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 215 25% 27%;                /* #334155 slate-700 */
-    --input: 215 25% 27%;
-    --ring: 160 84% 39%;                 /* emerald for focus rings */
-    --radius: 0.75rem;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%;                  /* #E5E5E5 soft gray */
+    --input: 0 0% 90%;
+    --ring: 13 100% 60%;
+    --radius: 0px;
   }
 
   .dark {
-    /* Mirrors root since the app is always dark */
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 14%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 160 84% 39%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 25% 65%;
-    --accent: 217 33% 14%;
-    --accent-foreground: 210 40% 98%;
+    --background: 0 0% 96%;
+    --foreground: 0 0% 7%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 7%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 7%;
+    --primary: 13 100% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 7%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 7%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 215 25% 27%;
-    --input: 215 25% 27%;
-    --ring: 160 84% 39%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 13 100% 60%;
   }
 }
 
@@ -62,6 +60,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-hanken), system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   ::-webkit-scrollbar {
@@ -72,10 +71,10 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(215 25% 27%);
+    background: hsl(0 0% 85%);
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(215 25% 35%);
+    background: hsl(0 0% 70%);
   }
 }

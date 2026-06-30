@@ -110,7 +110,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-3  px-3 py-2 text-sm font-medium transition-colors",
                     active
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:bg-accent hover:text-foreground",
@@ -131,7 +131,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
           <li>
             <Link
               href="#"
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="flex items-center gap-3  px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               <HelpCircle className="h-4 w-4" />
               Help Center
@@ -140,7 +140,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
           <li>
             <button
               onClick={handleSignOut}
-              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="flex w-full items-center gap-3  px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               <LogOut className="h-4 w-4" />
               Logout
