@@ -67,8 +67,8 @@ function SignUpForm() {
     </p>
    </div>
 
-   {/* Card */}
-   <div className="border border-border bg-card p-8">
+    {/* Card */}
+    <div className="border border-primary bg-card p-8">
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
      <div className="flex flex-col gap-2">
       <Label htmlFor="name" className="font-mono text-xs uppercase tracking-wider">
@@ -85,7 +85,7 @@ function SignUpForm() {
         onChange={(e) => setName(e.target.value)}
         disabled={submitting}
         required
-        className="border-0 border-b border-border bg-transparent pl-10 text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="border-0 border-b border-primary bg-transparent pl-10 text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
        />
       </div>
      </div>
@@ -105,7 +105,7 @@ function SignUpForm() {
         onChange={(e) => setEmail(e.target.value)}
         disabled={submitting}
         required
-        className="border-0 border-b border-border bg-transparent pl-10 text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="border-0 border-b border-primary bg-transparent pl-10 text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
        />
       </div>
      </div>
@@ -126,7 +126,7 @@ function SignUpForm() {
         disabled={submitting}
         required
         minLength={8}
-        className="border-0 border-b border-border bg-transparent pl-10 pr-10 text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="border-0 border-b border-primary bg-transparent pl-10 pr-10 text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
        />
        <button
         type="button"
@@ -150,23 +150,25 @@ function SignUpForm() {
       ))}
      </div>
 
-     <label className="flex items-center gap-2 text-sm text-muted-foreground">
-      <input
-       type="checkbox"
-       checked={agreed}
-       onChange={(e) => setAgreed(e.target.checked)}
-       className="h-4 w-4 rounded border-border accent-primary"
-      />
-      I agree to the{" "}
-      <Link href="#" className="text-primary hover:underline">
-       Terms of Service
-      </Link>{" "}
-      and{" "}
-      <Link href="#" className="text-primary hover:underline">
-       Privacy Policy
-      </Link>
-      .
-     </label>
+      <label className="flex items-start gap-2 text-sm text-muted-foreground">
+       <input
+        type="checkbox"
+        checked={agreed}
+        onChange={(e) => setAgreed(e.target.checked)}
+        className="mt-0.5 h-4 w-4 border-border accent-primary"
+       />
+       <span className="leading-relaxed">
+        I agree to the{" "}
+        <Link href="#" className="text-primary hover:underline">
+         Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link href="#" className="text-primary hover:underline">
+         Privacy Policy
+        </Link>
+        .
+       </span>
+      </label>
 
      {error && (
       <Alert variant="destructive" className="">

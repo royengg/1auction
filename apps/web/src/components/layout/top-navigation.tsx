@@ -20,10 +20,10 @@ import { apiClient } from "@/lib/api-client";
 import type { Role } from "@auction/shared";
 
 const topNavTabs = [
+  { label: "Dashboard", href: "/dashboard" },
   { label: "Live", href: "/dashboard?filter=live" },
   { label: "Upcoming", href: "/dashboard?filter=upcoming" },
   { label: "Results", href: "/dashboard?filter=results" },
-  { label: "Dashboard", href: "/dashboard" },
 ] as const;
 
 interface TopNavigationProps {

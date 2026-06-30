@@ -5,9 +5,9 @@
 @tailwind utilities;
 
 @layer base {
-  --font-hanken: "Hanken Grotesk", system-ui, sans-serif;
-  --font-jetbrains: "JetBrains Mono", monospace;
   :root {
+    --font-hanken: "Hanken Grotesk", system-ui, sans-serif;
+    --font-jetbrains: "JetBrains Mono", monospace;
     /* Light theme — new design system */
     --background: 0 0% 96%;              /* #F4F4F4 off-white */
     --foreground: 0 0% 7%;               /* #121212 near-black */

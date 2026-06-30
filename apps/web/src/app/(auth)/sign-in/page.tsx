@@ -65,7 +65,7 @@ function SignInForm() {
         onChange={(e) => setEmail(e.target.value)}
         disabled={submitting}
         required
-        className="border-0 border-b border-border bg-transparent pl-10 text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="border border-primary bg-card pl-10 text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
        />
       </div>
      </div>
@@ -93,7 +93,7 @@ function SignInForm() {
         onChange={(e) => setPassword(e.target.value)}
         disabled={submitting}
         required
-        className="border-0 border-b border-border bg-transparent pl-10 pr-10 text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="border border-primary bg-card pl-10 pr-10 text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
        />
        <button
         type="button"

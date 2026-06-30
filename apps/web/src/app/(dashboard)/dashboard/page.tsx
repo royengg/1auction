@@ -110,14 +110,14 @@ export default function DashboardPage() {
        onSubmit={handleJoinByCode}
        className="mt-3 flex items-center gap-3"
       >
-       <Input
-        value={codeInput}
-        onChange={(e) => setCodeInput(e.target.value)}
-        placeholder="Enter room code"
-        maxLength={4}
-        className="max-w-[200px] border-0 border-b border-border font-mono text-lg tracking-widest bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-primary"
-        required
-       />
+        <Input
+         value={codeInput}
+         onChange={(e) => setCodeInput(e.target.value)}
+         placeholder="Enter room code"
+         maxLength={4}
+         className="max-w-[200px] border border-border bg-card font-mono text-sm tracking-wider focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-primary"
+         required
+        />
        <Button type="submit" disabled={joining} className="bg-primary text-primary-foreground hover:bg-primary/90">
         Join Room
         <ArrowRight className="ml-2 h-4 w-4" />
@@ -231,57 +231,55 @@ export default function DashboardPage() {
       </button>
      </div>
 
-     <div className="border border-border bg-card">
       <table className="w-full text-left text-sm">
-       <thead>
-        <tr className="border-b border-border text-muted-foreground">
-         <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider">
-          Lot #
-         </th>
-         <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider">
-          Item
-         </th>
-         <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider">
-          Date
-         </th>
-         <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider">
-          Winning Bid
-         </th>
-         <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider">
-          Status
-         </th>
-        </tr>
-       </thead>
-       <tbody>
-        {completedRooms.slice(0, 5).map((room, index) => (
-         <tr
-          key={room.id}
-          className="border-b border-border last:border-0"
-         >
-          <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-           {String(index + 1).padStart(3, "0")}
-          </td>
-          <td className="px-4 py-3 font-medium">{room.title}</td>
-          <td className="px-4 py-3 text-muted-foreground">
-           {new Date(room.createdAt).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-           })}
-          </td>
-          <td className="px-4 py-3 font-display font-bold">
-           ${room.perRoomBudget.toLocaleString()}
-          </td>
-          <td className="px-4 py-3">
-           <span className="inline-flex items-center bg-muted px-2 py-0.5 font-mono text-xs uppercase tracking-wider">
-            COMPLETED
-           </span>
-          </td>
+        <thead>
+         <tr className="border-b border-border text-muted-foreground">
+          <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider">
+           Lot #
+          </th>
+          <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider">
+           Item
+          </th>
+          <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider">
+           Date
+          </th>
+          <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider">
+           Winning Bid
+          </th>
+          <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider">
+           Status
+          </th>
          </tr>
-        ))}
-       </tbody>
-      </table>
-     </div>
+        </thead>
+        <tbody>
+         {completedRooms.slice(0, 5).map((room, index) => (
+          <tr
+           key={room.id}
+           className="border-b border-border bg-card last:border-0"
+          >
+           <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+            {String(index + 1).padStart(3, "0")}
+           </td>
+           <td className="px-4 py-3 font-medium">{room.title}</td>
+           <td className="px-4 py-3 text-muted-foreground">
+            {new Date(room.createdAt).toLocaleDateString("en-US", {
+             month: "short",
+             day: "numeric",
+             year: "numeric",
+            })}
+           </td>
+           <td className="px-4 py-3 font-display font-bold">
+            ${room.perRoomBudget.toLocaleString()}
+           </td>
+           <td className="px-4 py-3">
+            <span className="inline-flex items-center bg-muted px-2 py-0.5 font-mono text-xs uppercase tracking-wider">
+             COMPLETED
+            </span>
+           </td>
+          </tr>
+         ))}
+        </tbody>
+       </table>
     </div>
    )}
   </div>

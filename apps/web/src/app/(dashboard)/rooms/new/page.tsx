@@ -138,15 +138,15 @@ export default function CreateAuctionPage() {
     Back to Dashboard
    </Link>
 
-   {/* Header */}
-   <div className="mb-10">
-    <h1 className="font-display text-4xl font-bold text-foreground">
-     Create Auction
-    </h1>
-    <p className="mt-2 text-sm text-muted-foreground">
-     Define the core details and catalogue items for your upcoming event.
-    </p>
-   </div>
+    {/* Header */}
+    <div className="mb-10 text-center">
+     <h1 className="font-display text-4xl font-bold text-foreground">
+      Create Auction
+     </h1>
+     <p className="mt-2 text-sm text-muted-foreground">
+      Define the core details and catalogue items for your upcoming event.
+     </p>
+    </div>
 
    <form onSubmit={handleSubmit} className="mx-auto max-w-4xl space-y-10">
     {/* Section 1: Event Details */}
@@ -165,7 +165,7 @@ export default function CreateAuctionPage() {
         onChange={(e) => setTitle(e.target.value)}
         placeholder="e.g. Mid-Century Teak Sideboard"
         required
-        className="border-0 border-b border-border bg-transparent text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="border border-border bg-card text-sm"
        />
       </div>
 
@@ -179,7 +179,7 @@ export default function CreateAuctionPage() {
          type="datetime-local"
          value={startDate}
          onChange={(e) => setStartDate(e.target.value)}
-         className="border-0 border-b border-border bg-transparent text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+         className="border border-border bg-card text-sm"
         />
        </div>
        <div className="space-y-2">
@@ -193,7 +193,7 @@ export default function CreateAuctionPage() {
          value={perRoomBudget}
          onChange={(e) => setPerRoomBudget(e.target.value)}
          required
-         className="border-0 border-b border-border bg-transparent text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+         className="border border-border bg-card text-sm"
         />
        </div>
       </div>
@@ -210,7 +210,7 @@ export default function CreateAuctionPage() {
          value={minIncrement}
          onChange={(e) => setMinIncrement(e.target.value)}
          required
-         className="border-0 border-b border-border bg-transparent text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+         className="border border-border bg-card text-sm"
         />
        </div>
        <div className="space-y-2">
@@ -224,7 +224,7 @@ export default function CreateAuctionPage() {
          value={itemDuration}
          onChange={(e) => setItemDuration(e.target.value)}
          required
-         className="border-0 border-b border-border bg-transparent text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+         className="border border-border bg-card text-sm"
         />
        </div>
        <div className="space-y-2">
@@ -239,7 +239,7 @@ export default function CreateAuctionPage() {
          value={maxBidders}
          onChange={(e) => setMaxBidders(e.target.value)}
          required
-         className="border-0 border-b border-border bg-transparent text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+         className="border border-border bg-card text-sm"
         />
        </div>
       </div>
@@ -299,7 +299,7 @@ export default function CreateAuctionPage() {
             }
             placeholder="e.g. Mid-Century Teak Sideboard"
             required
-            className="border-0 border-b border-border bg-transparent text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="border border-border bg-card text-sm"
            />
           </div>
 
@@ -315,7 +315,7 @@ export default function CreateAuctionPage() {
             }
             placeholder="Condition, dimensions, provenance..."
             rows={3}
-            className="border-0 border-b border-border bg-transparent text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0 resize-none"
+            className="border border-border bg-card text-sm resize-none"
            />
           </div>
 
@@ -334,7 +334,7 @@ export default function CreateAuctionPage() {
              }
              placeholder="0.00"
              required
-             className="border-0 border-b border-border bg-transparent text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+             className="border border-border bg-card text-sm"
             />
            </div>
            <div className="space-y-2">
@@ -349,7 +349,7 @@ export default function CreateAuctionPage() {
               updateItem(index, "imageUrl", e.target.value)
              }
              placeholder="https://..."
-             className="border-0 border-b border-border bg-transparent text-sm outline-none ring-0 focus:border-primary focus-visible:ring-0 focus-visible:ring-offset-0"
+             className="border border-border bg-card text-sm"
             />
            </div>
           </div>
@@ -383,7 +383,7 @@ export default function CreateAuctionPage() {
       type="button"
       variant="outline"
       onClick={() => router.push("/dashboard")}
-      className="border-border bg-transparent px-8"
+      className="border-foreground bg-transparent px-8"
      >
       SAVE DRAFT
      </Button>

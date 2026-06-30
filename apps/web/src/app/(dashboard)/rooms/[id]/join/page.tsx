@@ -77,18 +77,15 @@ export default function JoinRoomPage() {
 
  return (
   <div className="flex min-h-screen flex-col bg-background">
-   {/* Top bar */}
-   <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6">
-    <h1 className="font-display text-xl font-bold tracking-tight text-foreground">
-     1auction
-    </h1>
-    <Button variant="outline" size="sm" asChild>
-     <Link href="/dashboard">
-      <ArrowLeft className="mr-2 h-4 w-4" />
-      Back to Dashboard
-     </Link>
-    </Button>
-   </header>
+    {/* Top bar */}
+    <header className="flex h-16 items-center justify-end border-b border-border bg-card px-6">
+     <Button variant="outline" size="sm" asChild>
+      <Link href="/dashboard">
+       <ArrowLeft className="mr-2 h-4 w-4" />
+       Back to Dashboard
+      </Link>
+     </Button>
+    </header>
 
    {/* Centered card */}
    <main className="flex flex-1 items-center justify-center px-4 py-12">
