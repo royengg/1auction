@@ -35,11 +35,12 @@ export async function createRoom(
             minIncrement: parsed.minIncrement,
             itemDurationSeconds: parsed.itemDurationSeconds,
             maxBidders: parsed.maxBidders,
+            coverImageUrl: parsed.coverImageUrl ?? null,
             items: {
               create: parsed.items.map((item, slotIndex) => ({
                 slotIndex,
                 name: item.name,
-                description: item.description,
+                description: item.description ?? "",
                 imageUrl: item.imageUrl ?? null,
                 startingPrice: item.startingPrice,
               })),

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createRoomInputSchema } from "@auction/shared/schemas";
 
 import { getAuthContext } from "@/lib/auth-context";
 import { badRequest, forbidden, jsonError, unauthorized } from "@/lib/api-errors";
@@ -21,11 +22,13 @@ export async function POST(request: NextRequest) {
     return badRequest("invalid json body");
   }
 
+  const parseResult = createRoomInputSchema.safeParse(body);
+  if (!parseResult.success) {
+    return badRequest(parseResult.error.message);
+  }
+
   try {
-    const room = await createRoom(
-      ctx.userId,
-      body as Parameters<typeof createRoom>[1],
-    );
+    const room = await createRoom(ctx.userId, parseResult.data);
     return NextResponse.json(room, { status: 201 });
   } catch (err) {
     return jsonError(err);

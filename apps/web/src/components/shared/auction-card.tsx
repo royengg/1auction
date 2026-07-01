@@ -50,16 +50,24 @@ export function AuctionCard({ room, viewerRole, isOwner }: AuctionCardProps) {
     ? "—"
     : `$${room.perRoomBudget.toLocaleString()}`;
 
-  // Generate a lot number from the room code or id
-  const lotNumber = room.code || "001";
+  // Generate a random 4-digit lot number
+  const lotNumber = String(Math.floor(1000 + Math.random() * 9000));
 
   return (
     <div className="group flex flex-col overflow-hidden  border border-border bg-card transition-all hover:border-primary/30">
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-100 to-neutral-200">
-          <ImageIcon className="h-10 w-10 text-muted-foreground/30" />
-        </div>
+        {room.coverImageUrl ? (
+          <img
+            src={room.coverImageUrl}
+            alt={room.title}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-100 to-neutral-200">
+            <ImageIcon className="h-10 w-10 text-muted-foreground/30" />
+          </div>
+        )}
 
         {/* Status badge */}
         <div className="absolute left-3 top-3">

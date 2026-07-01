@@ -27,6 +27,12 @@ export interface StatsResponse {
   totalExposure: number;
 }
 
+export interface AuctioneerStatsResponse {
+  totalBidsToday: number;
+  currentValue: number;
+  successRate: string;
+}
+
 export interface ResultsResponse {
   room: {
     id: string;
@@ -41,6 +47,11 @@ export interface ResultsResponse {
   items: ResolvedItem[];
   participants: unknown[];
   winners: ResolvedItem[];
+  stats: {
+    totalBids: number;
+    participantCount: number;
+    duration: string;
+  };
 }
 
 function handleError(err: unknown): never {
@@ -104,10 +115,10 @@ export const apiClient = {
     }
   },
 
-  async getResults(roomId: string): Promise<ResolvedItem[]> {
+  async getResults(roomId: string): Promise<ResultsResponse> {
     try {
       const { data } = await api.get<ResultsResponse>(`/api/rooms/${roomId}/results`);
-      return data.winners;
+      return data;
     } catch (err) {
       handleError(err);
     }
@@ -134,6 +145,15 @@ export const apiClient = {
   async getStats(): Promise<StatsResponse> {
     try {
       const { data } = await api.get<StatsResponse>("/api/me/stats");
+      return data;
+    } catch (err) {
+      handleError(err);
+    }
+  },
+
+  async getAuctioneerStats(): Promise<AuctioneerStatsResponse> {
+    try {
+      const { data } = await api.get<AuctioneerStatsResponse>("/api/me/auctioneer-stats");
       return data;
     } catch (err) {
       handleError(err);

@@ -57,6 +57,7 @@ export interface RoomSummary {
   perRoomBudget: number;
   minIncrement: number;
   maxBidders: number;
+  coverImageUrl?: string | null;
   createdAt: string;
 }
 
@@ -98,6 +99,8 @@ export interface ResolvedItem {
   itemId: string;
   slotIndex: number;
   name: string;
+  description?: string;
+  imageUrl?: string | null;
   status: ItemStatus;
   winnerId: string | null;
   winnerName: string | null;
@@ -128,5 +131,6 @@ export interface CreateRoomInput {
   minIncrement: number;
   itemDurationSeconds: number;
   maxBidders: number;
+  coverImageUrl?: string | null;
   items: CreateRoomItemInput[];
 }

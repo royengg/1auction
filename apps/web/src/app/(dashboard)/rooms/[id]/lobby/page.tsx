@@ -204,16 +204,16 @@ export default function LobbyPage() {
 
       {/* Main content */}
       <main className="flex flex-1 px-4 py-8 lg:px-10 lg:py-12">
-        <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[380px_1fr]">
+        <div className="mx-auto grid w-full max-w-7xl gap-8 lg:grid-cols-[420px_1fr]">
           {/* Left: Room Info Card */}
           <div className="space-y-6">
-            <div className="border border-border bg-card p-6">
+            <div className="border border-border bg-card p-8">
               {/* Room code */}
               <div className="mb-4">
                 <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
                   Room Code
                 </p>
-                <h2 className="mt-1 font-display text-5xl font-bold text-primary">
+                <h2 className="mt-1 font-display text-6xl font-bold text-primary">
                   #{roomDetail.code}
                 </h2>
               </div>
@@ -275,11 +275,11 @@ export default function LobbyPage() {
                 </Button>
               )}
 
-              {bidderCount < AUCTION_ROOM.MIN_BIDDERS_TO_START && canStart && (
+              {/* {bidderCount < AUCTION_ROOM.MIN_BIDDERS_TO_START && canStart && (
                 <p className="mt-3 text-center text-xs text-muted-foreground">
                   Waiting for host to initiate
                 </p>
-              )}
+              )} */}
             </div>
 
             {/* Bottom actions */}
@@ -399,7 +399,9 @@ export default function LobbyPage() {
                           )}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Bidder #{String(index + 1).padStart(3, "0")}
+                          {participant.role === "AUCTIONEER"
+                            ? "HOST"
+                            : `Bidder #${String(index + 1).padStart(3, "0")}`}
                         </p>
                       </div>
                       {isOnline ? (
@@ -430,9 +432,9 @@ export default function LobbyPage() {
             {/* Waiting message for bidders */}
             {!canStart && !needsCode && (
               <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
+                {/* <p className="text-sm text-muted-foreground">
                   Waiting for the auctioneer to start the auction…
-                </p>
+                </p> */}
               </div>
             )}
           </div>

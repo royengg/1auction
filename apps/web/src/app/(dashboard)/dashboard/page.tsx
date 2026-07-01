@@ -34,11 +34,17 @@ export default function DashboardPage() {
  const isAuctioneer = role === "AUCTIONEER";
  const rooms = data?.rooms ?? [];
 
- const { data: stats } = useQuery({
-  queryKey: ["stats"],
-  queryFn: () => apiClient.getStats(),
-  enabled: !isAuctioneer,
- });
+  const { data: stats } = useQuery({
+    queryKey: ["stats"],
+    queryFn: () => apiClient.getStats(),
+    enabled: !isAuctioneer,
+  });
+
+  const { data: auctioneerStats } = useQuery({
+    queryKey: ["auctioneer-stats"],
+    queryFn: () => apiClient.getAuctioneerStats(),
+    enabled: isAuctioneer,
+  });
 
  async function handleJoinByCode(e: React.FormEvent) {
   e.preventDefault();
@@ -140,18 +146,18 @@ export default function DashboardPage() {
        label="Active Lots"
        value={activeRooms.length}
       />
-      <StatsCard
-       label="Total Bids Today"
-       value={348}
-      />
-      <StatsCard
-       label="Current Value"
-       value="$142,500"
-      />
-      <StatsCard
-       label="Success Rate"
-       value="94%"
-      />
+       <StatsCard
+        label="Total Bids Today"
+        value={auctioneerStats?.totalBidsToday ?? 0}
+       />
+       <StatsCard
+        label="Current Value"
+        value={`$${(auctioneerStats?.currentValue ?? 0).toLocaleString()}`}
+       />
+       <StatsCard
+        label="Success Rate"
+        value={auctioneerStats?.successRate ?? "0%"}
+       />
      </>
     ) : (
      <>

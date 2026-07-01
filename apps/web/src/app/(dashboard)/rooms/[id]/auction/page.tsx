@@ -325,14 +325,24 @@ export default function AuctionRoomPage() {
        </div>
       ))}
       {activeBidders.length > 4 && (
-       <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-primary text-xs font-semibold text-primary-foreground">
-        +{activeBidders.length - 4}
+        <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-primary text-xs font-semibold text-primary-foreground">
+         +{activeBidders.length - 4}
+        </div>
+       )}
+      </div>
+      {!isAuctioneer && (
+       <div>
+        <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+         Your Budget
+        </p>
+        <p className="font-display text-lg font-bold text-foreground">
+         ${availableBudget.toLocaleString()}
+        </p>
        </div>
       )}
      </div>
-    </div>
 
-    {/* Bid controls */}
+     {/* Bid controls */}
     <div className="flex items-center gap-4">
      <Button
       variant="outline"

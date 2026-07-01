@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ZodError } from "zod";
 
 import {
   NotAuctioneerError,
@@ -18,7 +19,22 @@ const ERROR_MAP: ErrorMap = {
   NotAuctioneerError: { status: 403 },
 };
 
+function formatZodError(error: ZodError): string {
+  const issues = error.issues.map((issue) => {
+    const path = issue.path.length > 0 ? issue.path.join(".") : "root";
+    return `${path}: ${issue.message}`;
+  });
+  return issues.join("; ");
+}
+
 export function jsonError(err: unknown): NextResponse {
+  if (err instanceof ZodError) {
+    return NextResponse.json(
+      { error: "Validation failed", details: formatZodError(err) },
+      { status: 400 },
+    );
+  }
+
   if (err instanceof Error && err.name in ERROR_MAP) {
     const mapped = ERROR_MAP[err.name]!;
     return NextResponse.json(

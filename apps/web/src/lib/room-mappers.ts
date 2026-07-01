@@ -73,6 +73,7 @@ export function buildRoomSummary(room: CountRoom): RoomSummary {
     perRoomBudget: room.perRoomBudget,
     minIncrement: room.minIncrement,
     maxBidders: room.maxBidders,
+    coverImageUrl: room.coverImageUrl ?? null,
     createdAt: room.createdAt.toISOString(),
   };
 }

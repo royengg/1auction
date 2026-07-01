@@ -49,6 +49,7 @@ export const roomSummarySchema = z.object({
   perRoomBudget: z.number().int().positive(),
   minIncrement: z.number().int().positive(),
   maxBidders: z.number().int().min(2).max(6).default(6),
+  coverImageUrl: z.string().url().nullable().optional(),
   createdAt: z.string(),
 });
 
@@ -60,11 +61,12 @@ export const createRoomInputSchema = z
     minIncrement: z.number().int().positive(),
     itemDurationSeconds: z.number().int().positive(),
     maxBidders: z.number().int().min(2).max(6).default(6),
+    coverImageUrl: z.string().url().nullable().optional(),
     items: z
       .array(
         z.object({
           name: z.string().min(1).max(LIMITS.ITEM_NAME_MAX),
-          description: z.string().max(LIMITS.ITEM_DESCRIPTION_MAX),
+          description: z.string().max(LIMITS.ITEM_DESCRIPTION_MAX).optional(),
           imageUrl: z.string().url().nullable().optional(),
           startingPrice: z.number().int().nonnegative(),
         }),
@@ -112,6 +114,8 @@ export const resolvedItemSchema = z.object({
   itemId: z.string().min(1),
   slotIndex: z.number().int().nonnegative(),
   name: z.string().min(1),
+  description: z.string().max(LIMITS.ITEM_DESCRIPTION_MAX).optional(),
+  imageUrl: z.string().url().nullable().optional(),
   status: itemStatusSchema,
   winnerId: z.string().nullable(),
   winnerName: z.string().nullable(),

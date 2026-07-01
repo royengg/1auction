@@ -41,8 +41,9 @@ export default function CreateAuctionPage() {
  const [itemDuration, setItemDuration] = useState(
   String(AUCTION_TIMER.DEFAULT_DURATION_SECONDS),
  );
- const [maxBidders, setMaxBidders] = useState("6");
- const [items, setItems] = useState<ItemDraft[]>([emptyItem()]);
+  const [maxBidders, setMaxBidders] = useState("6");
+  const [coverImageUrl, setCoverImageUrl] = useState("");
+  const [items, setItems] = useState<ItemDraft[]>([emptyItem()]);
  const [submitting, setSubmitting] = useState(false);
  const [error, setError] = useState<string | null>(null);
 
@@ -109,8 +110,9 @@ export default function CreateAuctionPage() {
     perRoomBudget: Number(perRoomBudget),
     minIncrement: Number(minIncrement),
     itemDurationSeconds: Number(itemDuration),
-    maxBidders: Number(maxBidders),
-    items: items.map((item) => ({
+     maxBidders: Number(maxBidders),
+     coverImageUrl: coverImageUrl.trim() || null,
+     items: items.map((item) => ({
      name: item.name.trim(),
      description: item.description.trim(),
      imageUrl: item.imageUrl.trim() || null,
@@ -130,25 +132,26 @@ export default function CreateAuctionPage() {
  return (
   <div className="p-6 lg:p-10">
    {/* Back link */}
-   <Link
-    href="/dashboard"
-    className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-   >
-    <ArrowLeft className="h-4 w-4" />
-    Back to Dashboard
-   </Link>
+    <Link
+     href="/dashboard"
+     className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+    >
+     <ArrowLeft className="h-4 w-4" />
+     Back to Dashboard
+    </Link>
 
-    {/* Header */}
-    <div className="mb-10 text-center">
-     <h1 className="font-display text-4xl font-bold text-foreground">
-      Create Auction
-     </h1>
-     <p className="mt-2 text-sm text-muted-foreground">
-      Define the core details and catalogue items for your upcoming event.
-     </p>
-    </div>
+    <div className="mx-auto max-w-4xl">
+     {/* Header */}
+     <div className="mb-10">
+      <h1 className="font-display text-5xl font-extrabold text-foreground">
+       Create Auction
+      </h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+       Define the core details and catalogue items for your upcoming event.
+      </p>
+     </div>
 
-   <form onSubmit={handleSubmit} className="mx-auto max-w-4xl space-y-10">
+     <form onSubmit={handleSubmit} className="space-y-10">
     {/* Section 1: Event Details */}
     <div>
      <h2 className="mb-6 font-display text-lg font-semibold text-foreground">
@@ -198,51 +201,65 @@ export default function CreateAuctionPage() {
        </div>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-3">
+       <div className="grid gap-6 sm:grid-cols-3">
+        <div className="space-y-2">
+         <Label htmlFor="increment" className="font-mono text-xs uppercase tracking-wider">
+          Minimum Increment ($)
+         </Label>
+         <Input
+          id="increment"
+          type="number"
+          min="1"
+          value={minIncrement}
+          onChange={(e) => setMinIncrement(e.target.value)}
+          required
+          className="border border-border bg-card text-sm"
+         />
+        </div>
+        <div className="space-y-2">
+         <Label htmlFor="duration" className="font-mono text-xs uppercase tracking-wider">
+          Item Duration (seconds)
+         </Label>
+         <Input
+          id="duration"
+          type="number"
+          min="1"
+          value={itemDuration}
+          onChange={(e) => setItemDuration(e.target.value)}
+          required
+          className="border border-border bg-card text-sm"
+         />
+        </div>
+        <div className="space-y-2">
+         <Label htmlFor="maxBidders" className="font-mono text-xs uppercase tracking-wider">
+          Max Bidders
+         </Label>
+         <Input
+          id="maxBidders"
+          type="number"
+          min="2"
+          max="6"
+          value={maxBidders}
+          onChange={(e) => setMaxBidders(e.target.value)}
+          required
+          className="border border-border bg-card text-sm"
+         />
+        </div>
+       </div>
+
        <div className="space-y-2">
-        <Label htmlFor="increment" className="font-mono text-xs uppercase tracking-wider">
-         Minimum Increment ($)
+        <Label htmlFor="coverImageUrl" className="font-mono text-xs uppercase tracking-wider">
+         Cover Photo
         </Label>
         <Input
-         id="increment"
-         type="number"
-         min="1"
-         value={minIncrement}
-         onChange={(e) => setMinIncrement(e.target.value)}
-         required
+         id="coverImageUrl"
+         type="url"
+         value={coverImageUrl}
+         onChange={(e) => setCoverImageUrl(e.target.value)}
+         placeholder="https://..."
          className="border border-border bg-card text-sm"
         />
        </div>
-       <div className="space-y-2">
-        <Label htmlFor="duration" className="font-mono text-xs uppercase tracking-wider">
-         Item Duration (seconds)
-        </Label>
-        <Input
-         id="duration"
-         type="number"
-         min="1"
-         value={itemDuration}
-         onChange={(e) => setItemDuration(e.target.value)}
-         required
-         className="border border-border bg-card text-sm"
-        />
-       </div>
-       <div className="space-y-2">
-        <Label htmlFor="maxBidders" className="font-mono text-xs uppercase tracking-wider">
-         Max Bidders
-        </Label>
-        <Input
-         id="maxBidders"
-         type="number"
-         min="2"
-         max="6"
-         value={maxBidders}
-         onChange={(e) => setMaxBidders(e.target.value)}
-         required
-         className="border border-border bg-card text-sm"
-        />
-       </div>
-      </div>
      </div>
     </div>
 
@@ -400,8 +417,9 @@ export default function CreateAuctionPage() {
        "START AUCTION"
       )}
      </Button>
-    </div>
-   </form>
-  </div>
- );
-}
+     </div>
+    </form>
+   </div>
+   </div>
+  );
+ }

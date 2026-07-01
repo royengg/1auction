@@ -37,6 +37,20 @@ export async function GET(
 
     const winnerMap = new Map(winners.map((w) => [w.itemId, w]));
 
+    // Compute aggregate stats
+    const totalBids = await prisma.bid.count({ where: { roomId } });
+    const participantCount = room.participants.filter(
+      (p) => p.userId !== room.auctioneerId,
+    ).length;
+
+    let duration = "—";
+    if (room.completedAt && room.createdAt) {
+      const diffMs = room.completedAt.getTime() - room.createdAt.getTime();
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      duration = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+    }
+
     const resolvedItems = room.items
       .filter((i) => i.status === "SOLD" || i.status === "UNSOLD")
       .map((i) => {
@@ -49,6 +63,8 @@ export async function GET(
           itemId: i.id,
           slotIndex: i.slotIndex,
           name: i.name,
+          description: i.description,
+          imageUrl: i.imageUrl,
           status: i.status,
           winnerId: finalWinnerId,
           winnerName: finalWinnerName,
@@ -73,6 +89,11 @@ export async function GET(
         mapParticipant(p, room.perRoomBudget),
       ),
       winners: resolvedItems,
+      stats: {
+        totalBids,
+        participantCount,
+        duration,
+      },
     });
   } catch (err) {
     return jsonError(err);

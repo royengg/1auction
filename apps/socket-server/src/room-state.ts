@@ -145,8 +145,12 @@ export async function setRoomStatus(
 ): Promise<void> {
   const redis = getRedis();
   await redis.hset(roomKey(roomId), "status", status);
+  const data: { status: RoomStatus; completedAt?: Date } = { status };
+  if (status === "COMPLETED") {
+    data.completedAt = new Date();
+  }
   await prisma.room
-    .update({ where: { id: roomId }, data: { status } })
+    .update({ where: { id: roomId }, data })
     .catch(() => {});
 }
 
@@ -381,6 +385,8 @@ export async function resolveItem(
     itemId: item.id,
     slotIndex: item.slotIndex,
     name: item.name,
+    description: item.description,
+    imageUrl: item.imageUrl,
     status: newStatus,
     winnerId,
     winnerName,
