@@ -58,6 +58,7 @@ export interface RoomSummary {
   minIncrement: number;
   maxBidders: number;
   coverImageUrl?: string | null;
+  isParticipant?: boolean;
   createdAt: string;
 }
 
@@ -92,6 +93,7 @@ export interface LiveRoomState {
   status: RoomStatus;
   activeItem: LiveItemState | null;
   bidders: RoomParticipant[];
+  spectatorIds: string[];
   resolvedItems: ResolvedItem[];
 }
 
@@ -115,6 +117,7 @@ export interface ChatMessage {
   userName: string;
   text: string;
   sentAt: string;
+  isSpectator?: boolean;
 }
 
 export interface CreateRoomItemInput {

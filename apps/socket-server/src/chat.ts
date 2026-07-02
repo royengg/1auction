@@ -50,6 +50,7 @@ export function registerChat(socket: Socket, io: Server): void {
         userName: user.name,
         text,
         sentAt: new Date().toISOString(),
+        isSpectator: socket.data.isSpectator ?? false,
       };
 
       io.to(roomId).emit(ServerEvent.CHAT_MESSAGE, message);

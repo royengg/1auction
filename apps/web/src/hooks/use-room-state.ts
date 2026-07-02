@@ -85,6 +85,17 @@ export function useRoomState(
       });
     }
 
+    function onSpectatorsChanged({
+      spectatorIds,
+    }: {
+      spectatorIds: string[];
+    }) {
+      setRoomState((prev) => {
+        if (!prev) return prev;
+        return { ...prev, spectatorIds };
+      });
+    }
+
     function onRoomStatusChanged({ status }: { status: RoomStatus }) {
       setRoomState((prev) => (prev ? { ...prev, status } : prev));
     }
@@ -176,6 +187,7 @@ export function useRoomState(
     socket.on(ServerEvent.ROOM_STATE, onRoomState);
     socket.on(ServerEvent.PARTICIPANT_UPDATE, onParticipantUpdate);
     socket.on(ServerEvent.PARTICIPANT_LEFT, onParticipantLeft);
+    socket.on(ServerEvent.SPECTATORS_CHANGED, onSpectatorsChanged);
     socket.on(ServerEvent.ROOM_STATUS_CHANGED, onRoomStatusChanged);
     socket.on(ServerEvent.ITEM_RESOLVED, onItemResolved);
     socket.on(ServerEvent.ACTIVE_ITEM_CHANGED, onActiveItemChanged);
@@ -190,6 +202,7 @@ export function useRoomState(
       socket.off(ServerEvent.ROOM_STATE, onRoomState);
       socket.off(ServerEvent.PARTICIPANT_UPDATE, onParticipantUpdate);
       socket.off(ServerEvent.PARTICIPANT_LEFT, onParticipantLeft);
+      socket.off(ServerEvent.SPECTATORS_CHANGED, onSpectatorsChanged);
       socket.off(ServerEvent.ROOM_STATUS_CHANGED, onRoomStatusChanged);
 socket.off(ServerEvent.ITEM_RESOLVED, onItemResolved);
     socket.off(ServerEvent.ACTIVE_ITEM_CHANGED, onActiveItemChanged);

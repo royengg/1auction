@@ -5,6 +5,7 @@ import {
   itemKey,
   resolvedListKey,
   roomKey,
+  spectatorsKey,
 } from "./keys.js";
 import {
   type AuctionItem,
@@ -438,6 +439,11 @@ export async function getResolvedItems(
   return list.map((json) => JSON.parse(json) as ResolvedItem);
 }
 
+export async function getSpectatorIds(roomId: string): Promise<string[]> {
+  const redis = getRedis();
+  return redis.smembers(spectatorsKey(roomId));
+}
+
 export async function buildRoomSnapshot(
   roomId: string,
 ): Promise<LiveRoomState | null> {
@@ -447,6 +453,7 @@ export async function buildRoomSnapshot(
   const items = await loadItemsFromDb(roomId);
   const bidders = await getRedisBidders(roomId);
   const resolvedItems = await getResolvedItems(roomId);
+  const spectatorIds = await getSpectatorIds(roomId);
 
   const activeItemId = await getActiveItemId(roomId);
   let activeItem: LiveItemState | null = null;
@@ -462,6 +469,7 @@ export async function buildRoomSnapshot(
     status: meta.status,
     activeItem,
     bidders,
+    spectatorIds,
     resolvedItems,
   };
 }
@@ -470,7 +478,7 @@ export async function cleanupRoomRedis(roomId: string): Promise<void> {
   const redis = getRedis();
   const meta = await loadRoomMeta(roomId);
   if (!meta) return;
-  const keys = [roomKey(roomId), biddersKey(roomId), resolvedListKey(roomId)];
+  const keys = [roomKey(roomId), biddersKey(roomId), resolvedListKey(roomId), spectatorsKey(roomId)];
   const items = await loadItemsFromDb(roomId);
   for (const item of items) {
     keys.push(itemKey(roomId, item.id));

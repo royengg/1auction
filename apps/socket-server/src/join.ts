@@ -1,5 +1,7 @@
 import type { Server, Socket } from "socket.io";
 
+import { getRedis } from "./redis.js";
+import { spectatorsKey } from "./keys.js";
 import { prisma } from "./prisma.js";
 import {
   buildRoomSnapshot,
@@ -47,25 +49,42 @@ export async function handleJoinRoom(
     select: { id: true },
   });
 
-  if (meta.status === "AUCTION" && meta.auctioneerId !== user.id) {
+  const isAuctioneer = meta.auctioneerId === user.id;
+  let isSpectator = false;
+
+  if (meta.status === "AUCTION" && !isAuctioneer) {
     if (!participantRow) {
-      ack({
-        ok: false,
-        error: {
-          message:
-            "This auction is already in progress. You can only join rooms in the LOBBY phase.",
-          reason: "ROOM_NOT_JOINABLE",
-        },
-      });
-      return;
+      // Join as spectator
+      isSpectator = true;
     }
+  } else if (meta.status === "LOBBY" && !isAuctioneer && !participantRow) {
+    ack({
+      ok: false,
+      error: {
+        message:
+          "You are not a participant in this room. Join the lobby first.",
+        reason: "ROOM_NOT_JOINABLE",
+      },
+    });
+    return;
   }
 
-  const redisBidders = await getRedisBidders(roomId);
-  if (redisBidders.length === 0) {
-    const participants = await loadParticipants(roomId, meta.perRoomBudget);
-    if (participants.length > 0) {
-      await initRoomRedisState(meta, participants);
+  const redis = getRedis();
+
+  if (isSpectator) {
+    // Track spectator in Redis
+    await redis.sadd(spectatorsKey(roomId), user.id);
+    // Broadcast updated spectator count to room
+    const spectatorIds = await redis.smembers(spectatorsKey(roomId));
+    io.to(roomId).emit(ServerEvent.SPECTATORS_CHANGED, { spectatorIds });
+  } else {
+    // Existing bidder/auctioneer flow
+    const redisBidders = await getRedisBidders(roomId);
+    if (redisBidders.length === 0) {
+      const participants = await loadParticipants(roomId, meta.perRoomBudget);
+      if (participants.length > 0) {
+        await initRoomRedisState(meta, participants);
+      }
     }
   }
 
@@ -77,25 +96,32 @@ export async function handleJoinRoom(
 
   if (socket.data.roomId && socket.data.roomId !== roomId) {
     socket.leave(socket.data.roomId);
+    // Remove from old room's spectators if applicable
+    if (socket.data.isSpectator) {
+      await redis.srem(spectatorsKey(socket.data.roomId), user.id);
+    }
   }
   socket.data.roomId = roomId;
+  socket.data.isSpectator = isSpectator;
   socket.join(roomId);
 
   await markPresent(roomId, user.id);
   await broadcastPresence(io, roomId);
 
-  io.to(roomId).emit(ServerEvent.PARTICIPANT_UPDATE, {
-    participant:
-      snapshot.bidders.find((b) => b.userId === user.id) ?? {
-        userId: user.id,
-        name: user.name,
-        role: user.role,
-        budget: 0,
-        reserved: 0,
-        available: 0,
-        spent: 0,
-      },
-  });
+  if (!isSpectator) {
+    io.to(roomId).emit(ServerEvent.PARTICIPANT_UPDATE, {
+      participant:
+        snapshot.bidders.find((b) => b.userId === user.id) ?? {
+          userId: user.id,
+          name: user.name,
+          role: user.role,
+          budget: 0,
+          reserved: 0,
+          available: 0,
+          spent: 0,
+        },
+    });
+  }
 
   ack({ ok: true, data: snapshot });
 }

@@ -12,6 +12,8 @@ import {
  ImageIcon,
  MessageSquare,
  X,
+ Eye,
+ LogOut,
 } from "lucide-react";
 
 import { apiClient } from "@/lib/api-client";
@@ -63,12 +65,14 @@ export default function AuctionRoomPage() {
   activeItem?.paused ?? false,
  );
 
- const userRole = role ?? "BIDDER";
- const isAuctioneer = userRole === "AUCTIONEER";
- const currentBidder = roomState?.bidders?.find(
-  (b) => b.userId === session?.user?.id,
- );
- const availableBudget = currentBidder?.available ?? 0;
+  const userRole = role ?? "BIDDER";
+  const isAuctioneer = userRole === "AUCTIONEER";
+  const currentBidder = roomState?.bidders?.find(
+   (b) => b.userId === session?.user?.id,
+  );
+  const isSpectator = !isAuctioneer && !currentBidder && roomState?.status === "AUCTION";
+  const viewerCount = roomState?.spectatorIds?.length ?? 0;
+  const availableBudget = currentBidder?.available ?? 0;
 
  const highBid = activeItem?.highBid;
  const highBidAmount = highBid?.amount ?? activeItem?.startingPrice ?? 0;
@@ -177,26 +181,32 @@ export default function AuctionRoomPage() {
     </Alert>
    )}
 
-   {/* Top info bar */}
-   <div className="flex items-center justify-between border-b border-border px-6 py-3">
-    <div className="flex items-center gap-4">
-     <span className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-primary">
-      <span className="h-2 w-2 rounded-full bg-primary" />
-      LIVE NOW
-     </span>
-     <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-      LOT {String((activeItem?.slotIndex ?? 0) + 1).padStart(2, "0")}
-     </span>
+    {/* Top info bar */}
+    <div className="flex items-center justify-between border-b border-border px-6 py-3">
+     <div className="flex items-center gap-4">
+      <span className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-primary">
+       <span className="h-2 w-2 rounded-full bg-primary" />
+       LIVE NOW
+      </span>
+      <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+       LOT {String((activeItem?.slotIndex ?? 0) + 1).padStart(2, "0")}
+      </span>
+      {viewerCount > 0 && (
+       <span className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+        <Eye className="h-3 w-3" />
+        {viewerCount} watching
+       </span>
+      )}
+     </div>
+     <div className="text-right">
+      <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+       Current Bid
+      </p>
+      <p className="font-display text-2xl font-bold text-foreground">
+       ${highBidAmount.toLocaleString()}
+      </p>
+     </div>
     </div>
-    <div className="text-right">
-     <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-      Current Bid
-     </p>
-     <p className="font-display text-2xl font-bold text-foreground">
-      ${highBidAmount.toLocaleString()}
-     </p>
-    </div>
-   </div>
 
    {/* Main content */}
    <div className="flex flex-1 overflow-hidden">
@@ -330,88 +340,107 @@ export default function AuctionRoomPage() {
         </div>
        )}
       </div>
-      {!isAuctioneer && (
-       <div>
-        <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-         Your Budget
-        </p>
-        <p className="font-display text-lg font-bold text-foreground">
-         ${availableBudget.toLocaleString()}
-        </p>
-       </div>
+      {!isAuctioneer && !isSpectator && (
+        <div>
+         <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+          Your Budget
+         </p>
+         <p className="font-display text-lg font-bold text-foreground">
+          ${availableBudget.toLocaleString()}
+         </p>
+        </div>
+       )}
+     </div>
+
+      {/* Bid controls */}
+     <div className="flex items-center gap-4">
+      {isSpectator ? (
+       <>
+        <span className="inline-flex items-center gap-1.5 bg-muted px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+         <Eye className="h-3 w-3" />
+         SPECTATING
+        </span>
+        <Button
+         variant="outline"
+         onClick={() => router.push("/dashboard")}
+         className="gap-2 border-border bg-transparent px-6"
+        >
+         <LogOut className="h-4 w-4" />
+         LEAVE SPECTATE
+        </Button>
+       </>
+      ) : (
+       <>
+        <Button
+         variant="outline"
+         className="border-border bg-transparent px-6"
+         disabled
+        >
+         WATCH LOT
+        </Button>
+
+        {!isAuctioneer && (
+         <>
+          {highBid?.userId === session?.user?.id ? (
+           <div className="bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+            You are the highest bidder
+           </div>
+          ) : (
+           <Button
+            onClick={() => handleSubmitBid(nextBidAmount)}
+            disabled={isPaused || isExpired}
+            className="gap-2 bg-primary px-6 text-primary-foreground hover:bg-primary/90"
+           >
+            BID ${nextBidAmount.toLocaleString()}
+            <ArrowRight className="h-4 w-4" />
+           </Button>
+          )}
+         </>
+        )}
+
+        {isAuctioneer && (
+         <Button
+          variant="outline"
+          onClick={isPaused ? handleResume : handlePause}
+          className="border-border bg-transparent"
+         >
+          {isPaused ? (
+           <>
+            <Play className="mr-2 h-4 w-4" />
+            RESUME
+           </>
+          ) : (
+           <>
+            <Pause className="mr-2 h-4 w-4" />
+            PAUSE
+           </>
+          )}
+         </Button>
+        )}
+       </>
       )}
      </div>
 
-     {/* Bid controls */}
-    <div className="flex items-center gap-4">
-     <Button
-      variant="outline"
-      className="border-border bg-transparent px-6"
-      disabled
-     >
-      WATCH LOT
-     </Button>
-
-     {!isAuctioneer && (
-      <>
-       {highBid?.userId === session?.user?.id ? (
-        <div className="bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
-         You are the highest bidder
-        </div>
-       ) : (
+     {/* Quick increments */}
+     {!isAuctioneer && !isSpectator && highBid?.userId !== session?.user?.id && (
+      <div className="flex items-center gap-2">
+       <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+        Quick Increments
+       </span>
+       {quickIncrements.map((inc) => (
         <Button
-         onClick={() => handleSubmitBid(nextBidAmount)}
+         key={inc.label}
+         variant="outline"
+         size="sm"
          disabled={isPaused || isExpired}
-         className="gap-2 bg-primary px-6 text-primary-foreground hover:bg-primary/90"
+         onClick={() => handleQuickBid(inc.amount)}
+         className="border-border bg-transparent text-xs"
         >
-         BID ${nextBidAmount.toLocaleString()}
-         <ArrowRight className="h-4 w-4" />
+         {inc.label}
         </Button>
-       )}
-      </>
+       ))}
+      </div>
      )}
-
-     {isAuctioneer && (
-      <Button
-       variant="outline"
-       onClick={isPaused ? handleResume : handlePause}
-       className="border-border bg-transparent"
-      >
-       {isPaused ? (
-        <>
-         <Play className="mr-2 h-4 w-4" />
-         RESUME
-        </>
-       ) : (
-        <>
-         <Pause className="mr-2 h-4 w-4" />
-         PAUSE
-        </>
-       )}
-      </Button>
-     )}
-    </div>
-
-    {/* Quick increments */}
-    {!isAuctioneer && highBid?.userId !== session?.user?.id && (
-     <div className="flex items-center gap-2">
-      <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-       Quick Increments
-      </span>
-      {quickIncrements.map((inc) => (
-       <Button
-        key={inc.label}
-        variant="outline"
-        size="sm"
-        disabled={isPaused || isExpired}
-        onClick={() => handleQuickBid(inc.amount)}
-        className="border-border bg-transparent text-xs"
-       >
-        {inc.label}
-       </Button>
-      ))}
-     </div>
-    )}
    </div>
 
    {/* Chat overlay */}
@@ -447,19 +476,24 @@ export default function AuctionRoomPage() {
             .slice(0, 2)}
           </div>
           <div className="min-w-0">
-           <div className="flex items-baseline gap-2">
-            <span className="text-xs font-medium">
-             {msg.userId === session?.user?.id
-              ? "You"
-              : msg.userName}
-            </span>
-            <span className="text-xs text-muted-foreground">
-             {new Date(msg.sentAt).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-             })}
-            </span>
-           </div>
+            <div className="flex items-baseline gap-2">
+             <span className="text-xs font-medium">
+              {msg.userId === session?.user?.id
+               ? "You"
+               : msg.userName}
+             </span>
+             {msg.isSpectator && (
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+               Spectator
+              </span>
+             )}
+             <span className="text-xs text-muted-foreground">
+              {new Date(msg.sentAt).toLocaleTimeString([], {
+               hour: "2-digit",
+               minute: "2-digit",
+              })}
+             </span>
+            </div>
            <p className="text-sm text-foreground">{msg.text}</p>
           </div>
          </div>

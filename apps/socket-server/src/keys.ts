@@ -7,3 +7,5 @@ export const resolvedListKey = (roomId: string): string =>
   `${roomKey(roomId)}:resolved`;
 export const presenceKey = (roomId: string): string =>
   `${roomKey(roomId)}:presence`;
+export const spectatorsKey = (roomId: string): string =>
+  `${roomKey(roomId)}:spectators`;

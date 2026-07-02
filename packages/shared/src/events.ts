@@ -2,6 +2,7 @@ export const ServerEvent = {
   ROOM_STATE: "room:state",
   PARTICIPANT_UPDATE: "room:participant:update",
   PARTICIPANT_LEFT: "room:participant:left",
+  SPECTATORS_CHANGED: "room:spectators:changed",
   ROOM_STATUS_CHANGED: "room:status:changed",
   ACTIVE_ITEM_CHANGED: "room:activeItem:changed",
   ITEM_STATE_UPDATE: "room:item:state",
@@ -69,6 +70,10 @@ export interface ServerParticipantUpdatePayload {
 
 export interface ServerParticipantLeftPayload {
   userId: string;
+}
+
+export interface ServerSpectatorsChangedPayload {
+  spectatorIds: string[];
 }
 
 export interface ServerRoomStatusChangedPayload {

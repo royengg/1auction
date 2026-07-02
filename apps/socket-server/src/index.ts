@@ -17,7 +17,8 @@ import { registerChat } from "./chat.js";
 import { markAbsent, broadcastPresence } from "./presence.js";
 import { rescheduleAllTimers } from "./timer.js";
 import { registerControlSubscriber } from "./control.js";
-import { ClientEvent, type Ack } from "@auction/shared";
+import { ClientEvent, ServerEvent, type Ack } from "@auction/shared";
+import { spectatorsKey } from "./keys.js";
 
 const app = express();
 app.use(cors({ origin: env.webOrigin, credentials: true }));
@@ -89,6 +90,12 @@ io.on("connection", (socket) => {
     const user = socket.data.user as SessionUser | undefined;
     const roomId = socket.data.roomId as string | undefined;
     if (user && roomId) {
+      if (socket.data.isSpectator) {
+        const redis = getRedis();
+        await redis.srem(spectatorsKey(roomId), user.id);
+        const spectatorIds = await redis.smembers(spectatorsKey(roomId));
+        io.to(roomId).emit(ServerEvent.SPECTATORS_CHANGED, { spectatorIds });
+      }
       await markAbsent(roomId, user.id);
       await broadcastPresence(io, roomId);
     }
@@ -99,7 +106,15 @@ io.on("connection", (socket) => {
     const roomId = socket.data.roomId as string | undefined;
     if (roomId) {
       socket.leave(roomId);
+      if (socket.data.isSpectator && user) {
+        const redis = getRedis();
+        void redis.srem(spectatorsKey(roomId), user.id).then(async () => {
+          const spectatorIds = await redis.smembers(spectatorsKey(roomId));
+          io.to(roomId).emit(ServerEvent.SPECTATORS_CHANGED, { spectatorIds });
+        });
+      }
       socket.data.roomId = undefined;
+      socket.data.isSpectator = false;
       if (user) {
         void markAbsent(roomId, user.id);
         void broadcastPresence(io, roomId);

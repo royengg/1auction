@@ -9,6 +9,7 @@ export interface AuthenticatedSocket {
     user?: SessionUser;
     roomId?: string;
     authenticatedAt?: number;
+    isSpectator?: boolean;
   };
 }
 

@@ -39,6 +39,6 @@ export async function GET(request: NextRequest) {
   const ctx = await getAuthContext(request);
   if (!ctx) return unauthorized();
 
-  const rooms = await listRooms();
+  const rooms = await listRooms(ctx.userId);
   return NextResponse.json({ rooms, viewerRole: ctx.activeRole });
 }

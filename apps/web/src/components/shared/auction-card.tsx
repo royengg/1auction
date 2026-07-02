@@ -39,6 +39,7 @@ export function AuctionCard({ room, viewerRole, isOwner }: AuctionCardProps) {
   const isAuctioneer = viewerRole === "AUCTIONEER";
   const isLive = room.status === "AUCTION";
   const isCompleted = room.status === "COMPLETED";
+  const isParticipant = room.isParticipant ?? false;
 
   const bidLabel = isCompleted
     ? "Final Bid"
@@ -123,6 +124,8 @@ export function AuctionCard({ room, viewerRole, isOwner }: AuctionCardProps) {
             >
               {isCompleted ? (
                 <span>ENDED</span>
+              ) : isLive && !isParticipant ? (
+                <Link href={`/rooms/${room.id}/auction`}>SPECTATE</Link>
               ) : isLive ? (
                 <Link href={`/rooms/${room.id}/auction`}>JOIN ROOM</Link>
               ) : (

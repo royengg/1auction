@@ -50,6 +50,7 @@ export const roomSummarySchema = z.object({
   minIncrement: z.number().int().positive(),
   maxBidders: z.number().int().min(2).max(6).default(6),
   coverImageUrl: z.string().url().nullable().optional(),
+  isParticipant: z.boolean().optional(),
   createdAt: z.string(),
 });
 
@@ -128,5 +129,6 @@ export const liveRoomStateSchema = z.object({
   status: roomStatusSchema,
   activeItem: liveItemStateSchema.nullable(),
   bidders: z.array(roomParticipantSchema),
+  spectatorIds: z.array(z.string().min(1)),
   resolvedItems: z.array(resolvedItemSchema),
 });

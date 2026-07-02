@@ -82,18 +82,26 @@ export async function createRoom(
   throw new Error("Unable to generate a unique room code after 10 attempts.");
 }
 
-export async function listRooms(): Promise<RoomSummary[]> {
+export async function listRooms(viewerId?: string): Promise<RoomSummary[]> {
   const rooms = await prisma.room.findMany({
     include: {
       auctioneer: true,
       items: { select: { id: true } },
-      participants: { select: { id: true } },
+      participants: { select: { id: true, userId: true } },
     },
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
     take: 100,
   });
 
-  return rooms.map(buildRoomSummary);
+  return rooms.map((room) => {
+    const summary = buildRoomSummary(room);
+    if (viewerId) {
+      summary.isParticipant = room.participants.some(
+        (p) => p.userId === viewerId,
+      );
+    }
+    return summary;
+  });
 }
 
 export async function getRoomDetail(roomId: string) {
