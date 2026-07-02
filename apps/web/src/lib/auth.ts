@@ -6,7 +6,14 @@ import { serverEnv } from "./env";
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   secret: serverEnv.betterAuthSecret,
-  baseURL: serverEnv.betterAuthUrl,
+  baseURL:
+    process.env.NODE_ENV === "production"
+      ? {
+          allowedHosts: ["1auction.cooldash.xyz"],
+          fallback: "https://1auction.cooldash.xyz",
+          protocol: "auto",
+        }
+      : serverEnv.betterAuthUrl,
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
