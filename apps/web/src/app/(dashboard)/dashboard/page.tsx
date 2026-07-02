@@ -23,28 +23,29 @@ export default function DashboardPage() {
  const [joinError, setJoinError] = useState<string | null>(null);
  const [joining, setJoining] = useState(false);
 
- const { data, isLoading } = useQuery({
-  queryKey: ["rooms"],
-  queryFn: () => apiClient.listRooms(),
-  enabled: !roleLoading && !!role,
- });
+  const { data, isLoading } = useQuery({
+   queryKey: ["rooms"],
+   queryFn: () => apiClient.listRooms(),
+   enabled: !roleLoading && !!role,
+  });
 
- if (roleLoading || !role) return null;
-
- const isAuctioneer = role === "AUCTIONEER";
- const rooms = data?.rooms ?? [];
+  const isAuctioneer = role === "AUCTIONEER";
 
   const { data: stats } = useQuery({
-    queryKey: ["stats"],
-    queryFn: () => apiClient.getStats(),
-    enabled: !isAuctioneer,
+   queryKey: ["stats"],
+   queryFn: () => apiClient.getStats(),
+   enabled: !roleLoading && !!role && !isAuctioneer,
   });
 
   const { data: auctioneerStats } = useQuery({
-    queryKey: ["auctioneer-stats"],
-    queryFn: () => apiClient.getAuctioneerStats(),
-    enabled: isAuctioneer,
+   queryKey: ["auctioneer-stats"],
+   queryFn: () => apiClient.getAuctioneerStats(),
+   enabled: !roleLoading && !!role && isAuctioneer,
   });
+
+  if (roleLoading || !role) return null;
+
+  const rooms = data?.rooms ?? [];
 
  async function handleJoinByCode(e: React.FormEvent) {
   e.preventDefault();

@@ -17,7 +17,6 @@ export function useRole(): RoleState {
     queryKey: ["role"],
     queryFn: () => apiClient.getRole(),
     enabled: !!session && !isPending,
-    staleTime: 0,
   });
 
   return { role: data?.activeRole ?? null, loading: isLoading || isPending };
