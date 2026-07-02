@@ -1,6 +1,7 @@
 import type { Server } from "socket.io";
 
 import { prisma } from "./prisma.js";
+import { withDbRetry } from "./prisma-retry.js";
 import {
   AUTO_ADVANCE_COOLDOWN_MS,
   allItemsResolved,
@@ -173,10 +174,12 @@ export async function startAuctionFlow(
 }
 
 export async function rescheduleAllTimers(io: RoomIO): Promise<void> {
-  const activeRooms = await prisma.room.findMany({
-    where: { status: "AUCTION" },
-    select: { id: true },
-  });
+  const activeRooms = await withDbRetry(() =>
+    prisma.room.findMany({
+      where: { status: "AUCTION" },
+      select: { id: true },
+    }),
+  );
 
   for (const room of activeRooms) {
     const roomId = room.id;
@@ -216,10 +219,12 @@ export async function rescheduleAllTimers(io: RoomIO): Promise<void> {
     }
   }
 
-  const completedRooms = await prisma.room.findMany({
-    where: { status: "COMPLETED" },
-    select: { id: true },
-  });
+  const completedRooms = await withDbRetry(() =>
+    prisma.room.findMany({
+      where: { status: "COMPLETED" },
+      select: { id: true },
+    }),
+  );
   for (const room of completedRooms) {
     const bidders = await getRedisBidders(room.id);
     if (bidders.length > 0) {

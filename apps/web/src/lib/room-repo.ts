@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { withDbRetry } from "./prisma-retry";
 import { generateRoomCode } from "./room-code";
 import { buildRoomDetail, buildRoomSummary, mapItem } from "./room-mappers";
 
@@ -83,15 +84,17 @@ export async function createRoom(
 }
 
 export async function listRooms(viewerId?: string): Promise<RoomSummary[]> {
-  const rooms = await prisma.room.findMany({
-    include: {
-      auctioneer: true,
-      items: { select: { id: true } },
-      participants: { select: { id: true, userId: true } },
-    },
-    orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-    take: 100,
-  });
+  const rooms = await withDbRetry(() =>
+    prisma.room.findMany({
+      include: {
+        auctioneer: true,
+        items: { select: { id: true } },
+        participants: { select: { id: true, userId: true } },
+      },
+      orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      take: 100,
+    }),
+  );
 
   return rooms.map((room) => {
     const summary = buildRoomSummary(room);
@@ -105,17 +108,19 @@ export async function listRooms(viewerId?: string): Promise<RoomSummary[]> {
 }
 
 export async function getRoomDetail(roomId: string) {
-  const room = await prisma.room.findUnique({
-    where: { id: roomId },
-    include: {
-      auctioneer: true,
-      items: { orderBy: { slotIndex: "asc" } },
-      participants: {
-        include: { user: true },
-        orderBy: { joinedAt: "asc" },
+  const room = await withDbRetry(() =>
+    prisma.room.findUnique({
+      where: { id: roomId },
+      include: {
+        auctioneer: true,
+        items: { orderBy: { slotIndex: "asc" } },
+        participants: {
+          include: { user: true },
+          orderBy: { joinedAt: "asc" },
+        },
       },
-    },
-  });
+    }),
+  );
 
   if (!room) {
     throw new RoomNotFoundError(roomId);

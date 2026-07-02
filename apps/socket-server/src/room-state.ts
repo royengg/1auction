@@ -1,4 +1,5 @@
 import { prisma } from "./prisma.js";
+import { withDbRetry } from "./prisma-retry.js";
 import { getRedis } from "./redis.js";
 import {
   biddersKey,
@@ -29,18 +30,20 @@ export interface RoomMeta {
 }
 
 export async function loadRoomMeta(roomId: string): Promise<RoomMeta | null> {
-  const room = await prisma.room.findUnique({
-    where: { id: roomId },
-    select: {
-      id: true,
-      code: true,
-      status: true,
-      auctioneerId: true,
-      perRoomBudget: true,
-      minIncrement: true,
-      itemDurationSeconds: true,
-    },
-  });
+  const room = await withDbRetry(() =>
+    prisma.room.findUnique({
+      where: { id: roomId },
+      select: {
+        id: true,
+        code: true,
+        status: true,
+        auctioneerId: true,
+        perRoomBudget: true,
+        minIncrement: true,
+        itemDurationSeconds: true,
+      },
+    }),
+  );
   if (!room) return null;
   return {
     id: room.id,
@@ -54,10 +57,12 @@ export async function loadRoomMeta(roomId: string): Promise<RoomMeta | null> {
 }
 
 export async function loadItemsFromDb(roomId: string): Promise<AuctionItem[]> {
-  const items = await prisma.auctionItem.findMany({
-    where: { roomId },
-    orderBy: { slotIndex: "asc" },
-  });
+  const items = await withDbRetry(() =>
+    prisma.auctionItem.findMany({
+      where: { roomId },
+      orderBy: { slotIndex: "asc" },
+    }),
+  );
   return items.map((i) => ({
     id: i.id,
     roomId: i.roomId,
@@ -76,11 +81,13 @@ export async function loadParticipants(
   roomId: string,
   perRoomBudget: number,
 ): Promise<RoomParticipant[]> {
-  const participants = await prisma.roomParticipant.findMany({
-    where: { roomId },
-    include: { user: { select: { name: true, activeRole: true } } },
-    orderBy: { joinedAt: "asc" },
-  });
+  const participants = await withDbRetry(() =>
+    prisma.roomParticipant.findMany({
+      where: { roomId },
+      include: { user: { select: { name: true, activeRole: true } } },
+      orderBy: { joinedAt: "asc" },
+    }),
+  );
   return participants.map((p) => ({
     userId: p.userId,
     name: p.user?.name ?? "",

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth-context";
 import { jsonError, unauthorized } from "@/lib/api-errors";
 import { prisma } from "@/lib/prisma";
+import { withDbRetry } from "@/lib/prisma-retry";
 import { mapParticipant } from "@/lib/room-mappers";
 
 export async function GET(
@@ -15,30 +16,36 @@ export async function GET(
   const { id: roomId } = await params;
 
   try {
-    const room = await prisma.room.findUnique({
-      where: { id: roomId },
-      include: {
-        auctioneer: { select: { name: true } },
-        items: { orderBy: { slotIndex: "asc" } },
-        participants: {
-          include: { user: { select: { name: true, activeRole: true } } },
-          orderBy: { joinedAt: "asc" },
+    const room = await withDbRetry(() =>
+      prisma.room.findUnique({
+        where: { id: roomId },
+        include: {
+          auctioneer: { select: { name: true } },
+          items: { orderBy: { slotIndex: "asc" } },
+          participants: {
+            include: { user: { select: { name: true, activeRole: true } } },
+            orderBy: { joinedAt: "asc" },
+          },
         },
-      },
-    });
+      }),
+    );
 
     if (!room) return jsonError(new Error("Room not found"));
 
-    const winners = await prisma.winner.findMany({
-      where: { roomId },
-      include: { user: { select: { name: true } }, item: true },
-      orderBy: { item: { slotIndex: "asc" } },
-    });
+    const winners = await withDbRetry(() =>
+      prisma.winner.findMany({
+        where: { roomId },
+        include: { user: { select: { name: true } }, item: true },
+        orderBy: { item: { slotIndex: "asc" } },
+      }),
+    );
 
     const winnerMap = new Map(winners.map((w) => [w.itemId, w]));
 
     // Compute aggregate stats
-    const totalBids = await prisma.bid.count({ where: { roomId } });
+    const totalBids = await withDbRetry(() =>
+      prisma.bid.count({ where: { roomId } }),
+    );
     const participantCount = room.participants.filter(
       (p) => p.userId !== room.auctioneerId,
     ).length;

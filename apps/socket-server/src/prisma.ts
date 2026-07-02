@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { startKeepalive } from "./prisma-retry.js";
 
 const globalForPrisma = globalThis as unknown as {
   socketPrisma?: PrismaClient;
@@ -13,3 +14,5 @@ export const prisma =
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.socketPrisma = prisma;
 }
+
+startKeepalive(prisma);

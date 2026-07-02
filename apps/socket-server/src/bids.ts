@@ -12,6 +12,7 @@ import {
   type RoomParticipant,
 } from "@auction/shared";
 import { prisma } from "./prisma.js";
+import { withDbRetry } from "./prisma-retry.js";
 
 const BID_COOLDOWN_MS = 500;
 const lastBidTimestamps = new Map<string, number>();
@@ -191,11 +192,11 @@ export async function placeBid(
 
   ack({ ok: true, data: { highBid, bidders } });
 
-  await persistBidToPostgres(roomId, activeItemId, user.id, amount).catch((err) => {
+  await withDbRetry(() => persistBidToPostgres(roomId, activeItemId, user.id, amount)).catch((err) => {
     console.error(`[placeBid] failed to persist bid to postgres: roomId=${roomId} itemId=${activeItemId} userId=${user.id} amount=${amount}:`, err);
   });
   if (typed[2] && typed[2] !== "") {
-    await syncReservedToPostgres(roomId, user.id, amount, typed[2]).catch((err) => {
+    await withDbRetry(() => syncReservedToPostgres(roomId, user.id, amount, typed[2])).catch((err) => {
       console.error(`[placeBid] failed to sync reserved to postgres: roomId=${roomId} userId=${user.id}:`, err);
     });
   }

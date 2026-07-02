@@ -3,6 +3,7 @@ import type { Server, Socket } from "socket.io";
 import { getRedis } from "./redis.js";
 import { spectatorsKey } from "./keys.js";
 import { prisma } from "./prisma.js";
+import { withDbRetry } from "./prisma-retry.js";
 import {
   buildRoomSnapshot,
   getRedisBidders,
@@ -44,10 +45,12 @@ export async function handleJoinRoom(
     return;
   }
 
-  const participantRow = await prisma.roomParticipant.findUnique({
-    where: { roomId_userId: { roomId, userId: user.id } },
-    select: { id: true },
-  });
+  const participantRow = await withDbRetry(() =>
+    prisma.roomParticipant.findUnique({
+      where: { roomId_userId: { roomId, userId: user.id } },
+      select: { id: true },
+    }),
+  );
 
   const isAuctioneer = meta.auctioneerId === user.id;
   let isSpectator = false;
