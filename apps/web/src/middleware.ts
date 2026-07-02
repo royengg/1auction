@@ -19,7 +19,9 @@ export function middleware(request: NextRequest) {
   if (!isProtected) return NextResponse.next();
 
   const authToken =
+    request.cookies.get("__Secure-1auction.session_token")?.value ??
     request.cookies.get("1auction.session_token")?.value ??
+    request.cookies.get("__Secure-better-auth.session_token")?.value ??
     request.cookies.get("better-auth.session_token")?.value;
 
   if (!authToken) {
