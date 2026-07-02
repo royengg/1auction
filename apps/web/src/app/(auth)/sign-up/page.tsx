@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { Loader2, User, Mail, Lock, Eye, EyeOff } from "lucide-react";
@@ -12,8 +12,7 @@ import { Button } from "@/components/ui/button";
 import { signUp } from "@/lib/auth-client";
 
 function SignUpForm() {
- const router = useRouter();
- const [name, setName] = useState("");
+  const [name, setName] = useState("");
  const [email, setEmail] = useState("");
  const [password, setPassword] = useState("");
  const [showPassword, setShowPassword] = useState(false);
@@ -53,8 +52,7 @@ function SignUpForm() {
    );
    return;
   }
-  router.push("/onboarding");
-  router.refresh();
+   window.location.href = "/onboarding";
  }
 
  return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
@@ -12,8 +12,7 @@ import { Button } from "@/components/ui/button";
 import { signIn } from "@/lib/auth-client";
 
 function SignInForm() {
- const router = useRouter();
- const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
  const redirectTo = searchParams.get("redirect") ?? "/dashboard";
 
  const [email, setEmail] = useState("");
@@ -33,8 +32,7 @@ function SignInForm() {
    setError(error.message ?? "Unable to sign in. Check your credentials.");
    return;
   }
-  router.push(redirectTo);
-  router.refresh();
+   window.location.href = redirectTo;
  }
 
  return (
