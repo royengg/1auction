@@ -2,10 +2,10 @@
 # Socket server — multi-stage build: Bun for install, Node 22 for runtime.
 
 # ─── 1. Deps stage ────────────────────────────────────────────────────────────
-FROM oven/bun:1.3 AS deps
+FROM oven/bun:1.2 AS deps
 WORKDIR /app
 
-COPY package.json bunfig.toml ./
+COPY package.json bunfig.toml bun.lock ./
 COPY apps/socket-server/package.json ./apps/socket-server/
 COPY apps/web/package.json ./apps/web/
 COPY packages/shared/package.json ./packages/shared/
@@ -13,7 +13,7 @@ COPY packages/shared/package.json ./packages/shared/
 RUN bun install 
 
 # ─── 2. Build stage ───────────────────────────────────────────────────────────
-FROM oven/bun:1.3 AS builder
+FROM oven/bun:1.2 AS builder
 WORKDIR /app
 
 ENV NODE_ENV=production
