@@ -13,7 +13,9 @@ export function getSocket(): Socket {
     reconnectionAttempts: Infinity,
     reconnectionDelay: 500,
     reconnectionDelayMax: 5_000,
-    transports: ["websocket"],
+    // Allow Socket.IO to auto-negotiate: HTTP polling first, then upgrade to WebSocket.
+    // This is more reliable behind reverse proxies (e.g. Traefik/Coolify) than forcing websocket-only.
+    transports: ["polling", "websocket"],
   });
   return socket;
 }
