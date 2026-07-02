@@ -7,14 +7,14 @@ import { env } from "./env.js";
 import { getRedis, closeRedis } from "./redis.js";
 import { verifySocketToken, type SessionUser } from "./auth.js";
 import { handleJoinRoom } from "./join.js";
-import { placeBid } from "./bids.js";
+import { placeBid, clearBidRateLimit } from "./bids.js";
 import {
   handlePause,
   handleResume,
   handleStartAuction,
 } from "./auctioneer.js";
 import { registerChat } from "./chat.js";
-import { markAbsent, broadcastPresence } from "./presence.js";
+import { markAbsent, broadcastPresence, markPresent } from "./presence.js";
 import { rescheduleAllTimers } from "./timer.js";
 import { registerControlSubscriber } from "./control.js";
 import { ClientEvent, ServerEvent, type Ack } from "@auction/shared";
@@ -86,10 +86,19 @@ io.on("connection", (socket) => {
 
   registerChat(socket, io);
 
+  socket.on(ClientEvent.PRESENCE_PING, (payload: unknown) => {
+    const user = socket.data.user as SessionUser | undefined;
+    const roomId = socket.data.roomId as string | undefined;
+    if (user && roomId) {
+      void markPresent(roomId, user.id);
+    }
+  });
+
   socket.on("disconnect", async () => {
     const user = socket.data.user as SessionUser | undefined;
     const roomId = socket.data.roomId as string | undefined;
     if (user && roomId) {
+      clearBidRateLimit(user.id);
       if (socket.data.isSpectator) {
         const redis = getRedis();
         await redis.srem(spectatorsKey(roomId), user.id);
@@ -106,6 +115,7 @@ io.on("connection", (socket) => {
     const roomId = socket.data.roomId as string | undefined;
     if (roomId) {
       socket.leave(roomId);
+      if (user) clearBidRateLimit(user.id);
       if (socket.data.isSpectator && user) {
         const redis = getRedis();
         void redis.srem(spectatorsKey(roomId), user.id).then(async () => {

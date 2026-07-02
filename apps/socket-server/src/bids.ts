@@ -13,6 +13,23 @@ import {
 } from "@auction/shared";
 import { prisma } from "./prisma.js";
 
+const BID_COOLDOWN_MS = 500;
+const lastBidTimestamps = new Map<string, number>();
+
+function isRateLimited(userId: string): boolean {
+  const now = Date.now();
+  const lastBid = lastBidTimestamps.get(userId);
+  if (lastBid !== undefined && now - lastBid < BID_COOLDOWN_MS) {
+    return true;
+  }
+  lastBidTimestamps.set(userId, now);
+  return false;
+}
+
+export function clearBidRateLimit(userId: string): void {
+  lastBidTimestamps.delete(userId);
+}
+
 async function runBidScript(
   redis: ReturnType<typeof getRedis>,
   roomId: string,
@@ -54,6 +71,17 @@ export async function placeBid(
   const roomId = socket.data.roomId;
   if (!user || !roomId) {
     ack({ ok: false, error: { message: "not in a room", reason: "NOT_AUTHENTICATED" } });
+    return;
+  }
+
+  if (isRateLimited(user.id)) {
+    ack({
+      ok: false,
+      error: {
+        message: `Please wait ${BID_COOLDOWN_MS}ms between bids.`,
+        reason: "RATE_LIMITED",
+      },
+    });
     return;
   }
 
@@ -135,6 +163,8 @@ export async function placeBid(
       message = "you are not registered as a bidder in this room";
     } else if (reason === "ALREADY_HIGH_BIDDER") {
       message = "you are already the highest bidder — wait for someone to outbid you";
+    } else if (reason === "RATE_LIMITED") {
+      message = `please wait ${BID_COOLDOWN_MS}ms between bids`;
     }
     ack({ ok: false, error: { message, reason } });
     return;
@@ -161,9 +191,13 @@ export async function placeBid(
 
   ack({ ok: true, data: { highBid, bidders } });
 
-  await persistBidToPostgres(roomId, activeItemId, user.id, amount).catch(() => {});
+  await persistBidToPostgres(roomId, activeItemId, user.id, amount).catch((err) => {
+    console.error(`[placeBid] failed to persist bid to postgres: roomId=${roomId} itemId=${activeItemId} userId=${user.id} amount=${amount}:`, err);
+  });
   if (typed[2] && typed[2] !== "") {
-    await syncReservedToPostgres(roomId, user.id, amount, typed[2]).catch(() => {});
+    await syncReservedToPostgres(roomId, user.id, amount, typed[2]).catch((err) => {
+      console.error(`[placeBid] failed to sync reserved to postgres: roomId=${roomId} userId=${user.id}:`, err);
+    });
   }
 }
 

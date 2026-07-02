@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getAuthContext } from "@/lib/auth-context";
-import { badRequest, forbidden, jsonError, unauthorized } from "@/lib/api-errors";
+import { forbidden, jsonError, unauthorized } from "@/lib/api-errors";
 import { startAuction } from "@/lib/room-repo";
 import { publishControl } from "@/lib/redis";
 

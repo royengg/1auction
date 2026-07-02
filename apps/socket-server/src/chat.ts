@@ -1,4 +1,5 @@
 import type { Server, Socket } from "socket.io";
+import { randomUUID } from "node:crypto";
 
 import {
   ClientEvent,
@@ -7,8 +8,6 @@ import {
   type Ack,
 } from "@auction/shared";
 import { LIMITS } from "@auction/shared";
-
-let messageCounter = 0;
 
 export function registerChat(socket: Socket, io: Server): void {
   socket.on(
@@ -44,7 +43,7 @@ export function registerChat(socket: Socket, io: Server): void {
       }
 
       const message: ChatMessage = {
-        id: `${Date.now()}-${messageCounter++}`,
+        id: randomUUID(),
         roomId,
         userId: user.id,
         userName: user.name,

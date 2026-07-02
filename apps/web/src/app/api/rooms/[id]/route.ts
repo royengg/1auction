@@ -52,10 +52,12 @@ export async function DELETE(
 
     // Clean up Redis
     const redis = getRedis();
-    await redis.del(`auction:room:${roomId}`);
-    await redis.del(`auction:bidders:${roomId}`);
-    await redis.del(`auction:resolved:${roomId}`);
-    await redis.del(`auction:presence:${roomId}`);
+    const roomKey = `auction:room:${roomId}`;
+    await redis.del(roomKey);
+    await redis.del(`${roomKey}:bidders`);
+    await redis.del(`${roomKey}:resolved`);
+    await redis.del(`${roomKey}:presence`);
+    await redis.del(`${roomKey}:spectators`);
 
     return NextResponse.json({ deleted: true });
   } catch (err) {

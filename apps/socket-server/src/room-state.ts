@@ -150,9 +150,11 @@ export async function setRoomStatus(
   if (status === "COMPLETED") {
     data.completedAt = new Date();
   }
-  await prisma.room
-    .update({ where: { id: roomId }, data })
-    .catch(() => {});
+  try {
+    await prisma.room.update({ where: { id: roomId }, data });
+  } catch (err) {
+    console.error(`[setRoomStatus] failed to persist status=${status} for room=${roomId}:`, err);
+  }
 }
 
 export async function startItem(
@@ -187,13 +189,17 @@ export async function startItem(
       where: { id: item.id, roomId, status: "PENDING" },
       data: { status: "ACTIVE" },
     })
-    .catch(() => {});
+    .catch((err) => {
+      console.error(`[startItem] failed to update item status for item=${item.id}:`, err);
+    });
   await prisma.room
     .update({
       where: { id: roomId },
       data: { activeItemIndex: item.slotIndex },
     })
-    .catch(() => {});
+    .catch((err) => {
+      console.error(`[startItem] failed to update room activeItemIndex for room=${roomId}:`, err);
+    });
   return liveItemFromRedis(roomId, item, {
     endsAt,
     paused: false,
@@ -275,22 +281,40 @@ export async function pauseActiveItem(
   itemId: string,
 ): Promise<{ paused: boolean; endsAt: number | null } | null> {
   const redis = getRedis();
-  const hash = await redis.hgetall(itemKey(roomId, itemId));
-  if (!hash || Object.keys(hash).length === 0) return null;
-  if (hash.paused === "1") {
+  const itemK = itemKey(roomId, itemId);
+
+  const paused = await redis.hget(itemK, "paused");
+  if (paused === "1") {
+    const endsAtStr = await redis.hget(itemK, "endsAt");
     return {
       paused: true,
-      endsAt: hash.endsAt && hash.endsAt !== "0" ? Number(hash.endsAt) : null,
+      endsAt: endsAtStr && endsAtStr !== "0" ? Number(endsAtStr) : null,
     };
   }
+
   const now = Date.now();
-  await redis.hset(itemKey(roomId, itemId), {
-    paused: "1",
-    pausedAt: String(now),
-  });
+  const result = await redis.eval(
+    `local cur = redis.call('HGET', KEYS[1], 'paused')
+     if cur == '1' then return 0 end
+     redis.call('HSET', KEYS[1], 'paused', '1', 'pausedAt', ARGV[1])
+     return 1`,
+    1,
+    itemK,
+    String(now),
+  );
+
+  if (result === 0) {
+    const endsAtStr = await redis.hget(itemK, "endsAt");
+    return {
+      paused: true,
+      endsAt: endsAtStr && endsAtStr !== "0" ? Number(endsAtStr) : null,
+    };
+  }
+
+  const endsAtStr = await redis.hget(itemK, "endsAt");
   return {
     paused: true,
-    endsAt: hash.endsAt && hash.endsAt !== "0" ? Number(hash.endsAt) : null,
+    endsAt: endsAtStr && endsAtStr !== "0" ? Number(endsAtStr) : null,
   };
 }
 
@@ -299,26 +323,45 @@ export async function resumeActiveItem(
   itemId: string,
 ): Promise<{ paused: boolean; endsAt: number | null } | null> {
   const redis = getRedis();
-  const hash = await redis.hgetall(itemKey(roomId, itemId));
-  if (!hash || Object.keys(hash).length === 0) return null;
-  if (hash.paused !== "1") {
+  const itemK = itemKey(roomId, itemId);
+
+  const paused = await redis.hget(itemK, "paused");
+  if (paused !== "1") {
+    const endsAtStr = await redis.hget(itemK, "endsAt");
     return {
       paused: false,
-      endsAt: hash.endsAt && hash.endsAt !== "0" ? Number(hash.endsAt) : null,
+      endsAt: endsAtStr && endsAtStr !== "0" ? Number(endsAtStr) : null,
     };
   }
+
   const now = Date.now();
-  const pausedAt = Number(hash.pausedAt ?? 0);
-  const pausedDelta = pausedAt > 0 ? now - pausedAt : 0;
-  const newAccumulated = Number(hash.pausedAccumulatedMs ?? 0) + pausedDelta;
-  const oldEndsAt = Number(hash.endsAt ?? 0);
-  const newEndsAt = oldEndsAt > 0 ? oldEndsAt + pausedDelta : 0;
-  await redis.hset(itemKey(roomId, itemId), {
-    paused: "0",
-    pausedAt: "0",
-    pausedAccumulatedMs: String(newAccumulated),
-    endsAt: String(newEndsAt),
-  });
+  const result = await redis.eval(
+    `local cur = redis.call('HGET', KEYS[1], 'paused')
+     if cur ~= '1' then return 0 end
+     local pausedAt = tonumber(redis.call('HGET', KEYS[1], 'pausedAt')) or 0
+     local oldEndsAt = tonumber(redis.call('HGET', KEYS[1], 'endsAt')) or 0
+     local oldAcc = tonumber(redis.call('HGET', KEYS[1], 'pausedAccumulatedMs')) or 0
+     local delta = 0
+     if pausedAt > 0 then delta = tonumber(ARGV[1]) - pausedAt end
+     local newAcc = oldAcc + delta
+     local newEndsAt = oldEndsAt
+     if oldEndsAt > 0 then newEndsAt = oldEndsAt + delta end
+     redis.call('HSET', KEYS[1], 'paused', '0', 'pausedAt', '0', 'pausedAccumulatedMs', tostring(newAcc), 'endsAt', tostring(newEndsAt))
+     return tostring(newEndsAt)`,
+    1,
+    itemK,
+    String(now),
+  );
+
+  if (result === 0) {
+    const endsAtStr = await redis.hget(itemK, "endsAt");
+    return {
+      paused: false,
+      endsAt: endsAtStr && endsAtStr !== "0" ? Number(endsAtStr) : null,
+    };
+  }
+
+  const newEndsAt = Number(result);
   return {
     paused: false,
     endsAt: newEndsAt > 0 ? newEndsAt : null,
@@ -348,6 +391,16 @@ export async function resolveItem(
   item: AuctionItem,
 ): Promise<ResolvedItem> {
   const redis = getRedis();
+
+  const currentStatus = await redis.hget(itemKey(roomId, item.id), "status");
+  if (currentStatus === "SOLD" || currentStatus === "UNSOLD") {
+    const existing = await redis.lrange(resolvedListKey(roomId), 0, -1);
+    for (const json of existing) {
+      const parsed = JSON.parse(json) as ResolvedItem;
+      if (parsed.itemId === item.id) return parsed;
+    }
+  }
+
   const hash = await redis.hgetall(itemKey(roomId, item.id));
   const highUserId = hash.highBidUserId ?? "";
   const highAmount = Number(hash.highBidAmount ?? 0);
