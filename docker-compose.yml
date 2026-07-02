@@ -1,8 +1,7 @@
 # ──────────────────────────────────────────────────────────────────────────
-# 1auction — local + Coolify deployment
-# Services: web (Next.js), socket-server (Express+Socket.io), redis.
-# Postgres is intentionally left to Neon (external) in the default config.
-# Uncomment the `postgres` block below to run a local PG instead.
+# 1auction — production deployment via Coolify
+# Services: web (Next.js), socket-server (Express + Socket.IO), redis.
+# PostgreSQL is external (Neon) — no postgres service here.
 # ──────────────────────────────────────────────────────────────────────────
 
 services:
@@ -13,21 +12,24 @@ services:
     container_name: 1auction-web
     restart: unless-stopped
     environment:
+      - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3000}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
       - JWT_SECRET=${JWT_SECRET}
       - REDIS_URL=redis://redis:6379
-      - NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL:-http://localhost:3001}
+      - NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL}
       - SOCKET_SERVER_INTERNAL_URL=http://socket-server:3001
-      - WEB_ORIGIN=${WEB_ORIGIN:-http://localhost:3000}
+      - WEB_ORIGIN=${WEB_ORIGIN}
     ports:
       - "3000:3000"
     depends_on:
       redis:
         condition: service_healthy
+      socket-server:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -40,18 +42,19 @@ services:
     container_name: 1auction-socket
     restart: unless-stopped
     environment:
+      - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - REDIS_URL=redis://redis:6379
       - SOCKET_SERVER_PORT=3001
-      - WEB_ORIGIN=${WEB_ORIGIN:-http://localhost:3000}
+      - WEB_ORIGIN=${WEB_ORIGIN}
     ports:
       - "3001:3001"
     depends_on:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -69,28 +72,7 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
-    ports:
-      - "6379:6379"
-
-  # ── Local Postgres (optional). Use Neon in production instead. ──────────────
-  # postgres:
-  #   image: postgres:17-alpine
-  #   container_name: 1auction-postgres
-  #   restart: unless-stopped
-  #   environment:
-  #     - POSTGRES_USER=auction
-  #     - POSTGRES_PASSWORD=auction
-  #     - POSTGRES_DB=auction
-  #   volumes:
-  #     - postgres-data:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U auction"]
-  #     interval: 10s
-  #     timeout: 3s
-  #     retries: 5
+      start_period: 5s
 
 volumes:
   redis-data:
-  # postgres-data:

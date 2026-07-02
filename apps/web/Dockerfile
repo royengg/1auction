@@ -1,43 +1,62 @@
 # syntax=docker/dockerfile:1.7
-# Web app image — multi-stage build with Bun for install, Node for runtime.
+# Web app — multi-stage build: Bun for install, Node 22 for runtime.
 
 # ─── 1. Deps stage ────────────────────────────────────────────────────────────
 FROM oven/bun:1.3 AS deps
 WORKDIR /app
-# Copy workspace manifests first for caching.
+
 COPY package.json bunfig.toml ./
 COPY apps/web/package.json ./apps/web/
+COPY apps/socket-server/package.json ./apps/socket-server/
 COPY packages/shared/package.json ./packages/shared/
-RUN bun install --frozen-lockfile=false
+
+RUN bun install 
 
 # ─── 2. Build stage ───────────────────────────────────────────────────────────
 FROM oven/bun:1.3 AS builder
 WORKDIR /app
+
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
-COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
+
 COPY package.json bunfig.toml tsconfig.base.json ./
 COPY packages/shared ./packages/shared
 COPY apps/web ./apps/web
+COPY apps/socket-server/package.json ./apps/socket-server/package.json
+
 RUN bun --filter @auction/shared build
+
 WORKDIR /app/apps/web
 RUN bun run db:generate
-ENV NEXT_TELEMETRY_DISABLED=1
 RUN bun run build
 
 # ─── 3. Runner ────────────────────────────────────────────────────────────────
 FROM node:22-alpine AS runner
 WORKDIR /app
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
-# Copy the standalone output produced by Next.js.
-COPY --from=builder /app/apps/web/.next/standalone ./
-COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
-COPY --from=builder /app/apps/web/public ./apps/web/public
-COPY --from=builder /app/apps/web/prisma ./apps/web/prisma
-USER nextjs
-EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Next.js standalone output
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/prisma ./apps/web/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder --chown=nextjs:nodejs /app/packages/shared/package.json ./packages/shared/package.json
+
+USER nextjs
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD wget -qO- http://localhost:3000/api/health || exit 1
+
 CMD ["node", "apps/web/server.js"]
