@@ -19,7 +19,7 @@
   "dependencies": {
     "@auction/shared": "workspace:*",
     "@better-auth/prisma-adapter": "^1.6.20",
-    "@prisma/client": "^6.2.1",
+    "@prisma/client": "6.19.3",
     "@radix-ui/react-avatar": "^1.2.0",
     "@radix-ui/react-dialog": "^1.1.17",
     "@radix-ui/react-dropdown-menu": "^2.1.18",
@@ -59,7 +59,7 @@
     "eslint": "^9.18.0",
     "eslint-config-next": "^15.1.4",
     "postcss": "^8.4.49",
-    "prisma": "^6.2.1",
+    "prisma": "6.19.3",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3"
   }

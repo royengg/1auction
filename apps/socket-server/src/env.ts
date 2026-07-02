@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 
-config({ path: [".env", ".env.local", "../../.env", "../../.env.local"] });
+config({ path: [".env", ".env.local", "../../.env", "../../.env.local"], override: false });
 
 function required(name: string, fallback?: string): string {
   const value = process.env[name] ?? fallback;

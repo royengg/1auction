@@ -29,7 +29,8 @@ services:
       socket-server:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      test:
+        ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -64,7 +65,14 @@ services:
     image: redis:7-alpine
     container_name: 1auction-redis
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "allkeys-lru"]
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--maxmemory-policy",
+        "allkeys-lru",
+      ]
     volumes:
       - redis-data:/data
     healthcheck:
