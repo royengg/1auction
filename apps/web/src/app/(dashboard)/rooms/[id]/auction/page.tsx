@@ -20,6 +20,7 @@ import { apiClient } from "@/lib/api-client";
 import { useSocket } from "@/hooks/use-socket";
 import { useRoomState } from "@/hooks/use-room-state";
 import { useAuctionTimer } from "@/hooks/use-auction-timer";
+import { useAuctionAudio } from "@/hooks/use-auction-audio";
 import { useSession } from "@/lib/auth-client";
 import { useRole } from "@/hooks/use-role";
 import { Button } from "@/components/ui/button";
@@ -35,18 +36,20 @@ export default function AuctionRoomPage() {
  const router = useRouter();
  const { data: session } = useSession();
  const { role } = useRole();
- const { socket, connected, authenticated, error: socketError } = useSocket();
- const {
-  roomState,
-  chatMessages,
-  bidHistory,
-  presence,
-  error: roomError,
-  placeBid,
-  sendChat,
-  pauseAuction,
-  resumeAuction,
- } = useRoomState(authenticated ? socket : null, roomId);
+  const { socket, connected, authenticated, error: socketError } = useSocket();
+  const {
+   roomState,
+   chatMessages,
+   bidHistory,
+   presence,
+   error: roomError,
+   placeBid,
+   sendChat,
+   pauseAuction,
+   resumeAuction,
+  } = useRoomState(authenticated ? socket : null, roomId);
+
+  const audio = useAuctionAudio();
 
  const [chatInput, setChatInput] = useState("");
  const [bidError, setBidError] = useState<string | null>(null);
@@ -78,20 +81,39 @@ export default function AuctionRoomPage() {
  const highBidAmount = highBid?.amount ?? activeItem?.startingPrice ?? 0;
  const minIncrement = roomDetail?.minIncrement ?? 100;
 
- useEffect(() => {
-  if (chatScrollRef.current) {
-   chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-  }
- }, [chatMessages]);
+  useEffect(() => {
+   if (chatScrollRef.current) {
+    chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+   }
+  }, [chatMessages]);
 
- useEffect(() => {
-  if (roomState?.status === "COMPLETED") {
-   router.push(`/rooms/${roomId}/results`);
-  }
-  if (roomState?.status === "LOBBY") {
-   router.push(`/rooms/${roomId}/lobby`);
-  }
- }, [roomState?.status, roomId, router]);
+  useEffect(() => {
+   if (roomState?.status === "COMPLETED") {
+    router.push(`/rooms/${roomId}/results`);
+   }
+   if (roomState?.status === "LOBBY") {
+    router.push(`/rooms/${roomId}/lobby`);
+   }
+  }, [roomState?.status, roomId, router]);
+
+  // Countdown tick sound for last 5 seconds
+  useEffect(() => {
+   if (seconds > 0 && seconds <= 5 && !activeItem?.paused) {
+    audio.tick(seconds);
+   }
+  }, [seconds, activeItem?.paused, audio]);
+
+  // Gavel sound when auction ends
+  useEffect(() => {
+   if (isExpired) {
+    audio.gavel();
+   }
+  }, [isExpired, audio]);
+
+  // Reset audio state when a new item becomes active
+  useEffect(() => {
+   audio.reset();
+  }, [activeItem?.itemId, audio]);
 
  const minimumBid = highBid
   ? highBidAmount + minIncrement
