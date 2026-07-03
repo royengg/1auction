@@ -94,7 +94,7 @@ export default function ResultsPage() {
       </div>
 
       {/* Aggregate Stats */}
-      <div className="mb-10 grid grid-cols-3 gap-4 border-b border-border pb-6">
+      <div className={`mb-10 grid ${soldItems.length > 0 ? "grid-cols-4" : "grid-cols-3"} gap-4 border-b border-border pb-6`}>
         <div>
           <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
             Total Bids
@@ -119,19 +119,17 @@ export default function ResultsPage() {
             {duration}
           </p>
         </div>
+        {soldItems.length > 0 && (
+          <div>
+            <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+              Total Revenue
+            </p>
+            <p className="mt-1 font-display text-3xl font-bold text-foreground">
+              ${totalRevenue.toLocaleString()}
+            </p>
+          </div>
+        )}
       </div>
-
-      {/* Total Revenue (only if there are sold items) */}
-      {soldItems.length > 0 && (
-        <div className="mb-10">
-          <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-            Total Revenue
-          </p>
-          <p className="mt-1 font-display text-3xl font-bold text-foreground">
-            ${totalRevenue.toLocaleString()}
-          </p>
-        </div>
-      )}
 
       {/* Actions */}
       <div className="mb-10 flex gap-3">
