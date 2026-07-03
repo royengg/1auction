@@ -24,8 +24,9 @@ export async function createRoom(
     const code = generateRoomCode();
 
     try {
-      const room = await prisma.$transaction(async (tx) => {
-        const created = await tx.room.create({
+      const room = await withDbRetry(() =>
+        prisma.$transaction(async (tx) => {
+          const created = await tx.room.create({
           data: {
             code,
             title: parsed.title,
@@ -64,8 +65,9 @@ export async function createRoom(
           },
         });
 
-        return created;
-      });
+          return created;
+        }),
+      );
 
       return buildRoomDetail(room);
     } catch (err) {

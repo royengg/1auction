@@ -13,6 +13,7 @@ const TRANSIENT_ERROR_PATTERNS = [
   "P1001",
   "P1002",
   "P1017",
+  "P2028",
   "Timed out",
   "ETIMEDOUT",
   "ECONNRESET",
