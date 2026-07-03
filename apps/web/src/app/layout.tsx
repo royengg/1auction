@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { QueryProvider } from "@/lib/query-provider";
+import { AgentationProvider } from "@/components/agentation-provider";
 
 export const metadata: Metadata = {
  title: "Interactive Auction Hub — Live Auction Rooms",
@@ -21,6 +22,7 @@ export default function RootLayout({
   <html lang="en" suppressHydrationWarning>
    <body className="min-h-screen bg-background font-sans antialiased">
     <QueryProvider>{children}</QueryProvider>
+    <AgentationProvider />
    </body>
   </html>
  );
