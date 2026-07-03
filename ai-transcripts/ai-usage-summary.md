@@ -2,7 +2,7 @@
 
 ## Tools used
 - OpenCode (primary — live coding session)
-- (Add others as you use them, e.g. Claude Code, Cursor, Stitch)
+
 
 ## What AI helped with
 - Initial monorepo scaffolding (bun workspaces, Next.js 15, socket-server layout)
