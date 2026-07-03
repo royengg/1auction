@@ -182,31 +182,31 @@ export default function AuctionRoomPage() {
    )}
 
     {/* Top info bar */}
-    <div className="flex items-center justify-between border-b border-border px-6 py-3">
-     <div className="flex items-center gap-4">
-      <span className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-primary">
-       <span className="h-2 w-2 rounded-full bg-primary" />
-       LIVE NOW
-      </span>
-      <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-       LOT {String((activeItem?.slotIndex ?? 0) + 1).padStart(2, "0")}
-      </span>
-      {viewerCount > 0 && (
-       <span className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wider text-muted-foreground">
-        <Eye className="h-3 w-3" />
-        {viewerCount} watching
+    <div className="flex items-center justify-between border-b border-border bg-secondary px-6 py-3 text-secondary-foreground">
+      <div className="flex items-center gap-4">
+       <span className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-primary">
+        <span className="h-2 w-2 rounded-full bg-primary" />
+        LIVE NOW
        </span>
-      )}
+       <span className="font-mono text-xs uppercase tracking-wider text-secondary-foreground/70">
+        LOT {String((activeItem?.slotIndex ?? 0) + 1).padStart(2, "0")}
+       </span>
+       {viewerCount > 0 && (
+        <span className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wider text-secondary-foreground/70">
+         <Eye className="h-3 w-3" />
+         {viewerCount} watching
+        </span>
+       )}
+      </div>
+      <div className="text-right">
+       <p className="font-mono text-xs uppercase tracking-wider text-secondary-foreground/70">
+        Current Bid
+       </p>
+       <p className="font-display text-2xl font-bold">
+        ${highBidAmount.toLocaleString()}
+       </p>
+      </div>
      </div>
-     <div className="text-right">
-      <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-       Current Bid
-      </p>
-      <p className="font-display text-2xl font-bold text-foreground">
-       ${highBidAmount.toLocaleString()}
-      </p>
-     </div>
-    </div>
 
    {/* Main content */}
    <div className="flex flex-1 overflow-hidden">
@@ -313,7 +313,7 @@ export default function AuctionRoomPage() {
    </div>
 
     {/* Bottom bar */}
-    <div className="flex items-center justify-between border-t border-border bg-secondary px-6 py-4 text-secondary-foreground">
+    <div className="flex items-center justify-between border-t border-border bg-card px-6 py-4">
     {/* Active bidders */}
     <div className="flex items-center gap-3">
      <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
@@ -345,7 +345,7 @@ export default function AuctionRoomPage() {
          <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
           Your Budget
          </p>
-          <p className="font-display text-lg font-bold">
+          <p className="font-display text-lg font-bold text-foreground">
            ${availableBudget.toLocaleString()}
           </p>
         </div>
