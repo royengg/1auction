@@ -275,11 +275,11 @@ export default function LobbyPage() {
                 </Button>
               )}
 
-              {/* {bidderCount < AUCTION_ROOM.MIN_BIDDERS_TO_START && canStart && (
-                <p className="mt-3 text-center text-xs text-muted-foreground">
-                  Waiting for host to initiate
+              {bidderCount < AUCTION_ROOM.MIN_BIDDERS_TO_START && canStart && (
+                <p className="mt-3 text-center text-xs text-destructive">
+                  Need at least {AUCTION_ROOM.MIN_BIDDERS_TO_START} bidders to start ({bidderCount} present)
                 </p>
-              )} */}
+              )}
             </div>
 
             {/* Bottom actions */}

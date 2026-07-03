@@ -4,6 +4,7 @@ import { getRedis } from "./redis.js";
 import { roomKey } from "./keys.js";
 import {
   loadItemsFromDb,
+  loadParticipants,
   loadRoomMeta,
   pauseActiveItem,
   resumeActiveItem,
@@ -12,6 +13,7 @@ import {
 } from "./room-state.js";
 import { scheduleExpiry, cancelExpiry, startAuctionFlow } from "./timer.js";
 import {
+  AUCTION_ROOM,
   ServerEvent,
   type Ack,
   type LiveItemState,
@@ -41,6 +43,18 @@ export async function handleStartAuction(
   }
   if (meta.status !== "LOBBY") {
     ack({ ok: false, error: { message: `room is already ${meta.status}` } });
+    return;
+  }
+
+  const participants = await loadParticipants(roomId, meta.perRoomBudget);
+  const bidderCount = participants.filter((p) => p.role === "BIDDER").length;
+  if (bidderCount < AUCTION_ROOM.MIN_BIDDERS_TO_START) {
+    ack({
+      ok: false,
+      error: {
+        message: `Need at least ${AUCTION_ROOM.MIN_BIDDERS_TO_START} bidders to start (${bidderCount} present).`,
+      },
+    });
     return;
   }
 

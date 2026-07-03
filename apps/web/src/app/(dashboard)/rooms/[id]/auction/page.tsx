@@ -96,9 +96,9 @@ export default function AuctionRoomPage() {
    }
   }, [roomState?.status, roomId, router]);
 
-  // Countdown tick sound for last 5 seconds
+  // Countdown tick sound for last 5 seconds (including 0)
   useEffect(() => {
-   if (seconds > 0 && seconds <= 5 && !activeItem?.paused) {
+   if (seconds >= 0 && seconds <= 5 && !activeItem?.paused) {
     audio.tick(seconds);
    }
   }, [seconds, activeItem?.paused, audio]);
@@ -408,11 +408,11 @@ export default function AuctionRoomPage() {
             You are the highest bidder
            </div>
           ) : (
-           <Button
-            onClick={() => handleSubmitBid(nextBidAmount)}
-            disabled={isPaused || isExpired}
-            className="gap-2 bg-primary px-6 text-primary-foreground hover:bg-primary/90"
-           >
+            <Button
+             onClick={() => handleSubmitBid(nextBidAmount)}
+             disabled={isPaused || isExpired || !activeItem}
+             className="gap-2 bg-primary px-6 text-primary-foreground hover:bg-primary/90"
+            >
             BID ${nextBidAmount.toLocaleString()}
             <ArrowRight className="h-4 w-4" />
            </Button>
@@ -450,14 +450,14 @@ export default function AuctionRoomPage() {
         Quick Increments
        </span>
        {quickIncrements.map((inc) => (
-        <Button
-         key={inc.label}
-         variant="outline"
-         size="sm"
-         disabled={isPaused || isExpired}
-         onClick={() => handleQuickBid(inc.amount)}
-         className="border-border bg-transparent text-xs"
-        >
+         <Button
+          key={inc.label}
+          variant="outline"
+          size="sm"
+          disabled={isPaused || isExpired || !activeItem}
+          onClick={() => handleQuickBid(inc.amount)}
+          className="border-border bg-transparent text-xs"
+         >
          {inc.label}
         </Button>
        ))}

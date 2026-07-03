@@ -9,6 +9,8 @@ export function useAuctionTimer(endsAt: number | null, paused: boolean) {
     if (!endsAt || paused) {
       if (paused && endsAt) {
         setRemainingMs(Math.max(0, endsAt - Date.now()));
+      } else if (!endsAt) {
+        setRemainingMs(0);
       }
       return;
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 let globalAudioContext: AudioContext | null = null;
 let audioUnlocked = false;
@@ -147,11 +147,11 @@ export function useAuctionAudio() {
   }, []);
 
   const tick = useCallback((secondsLeft: number) => {
-    if (secondsLeft < 1 || secondsLeft > 5) return;
+    if (secondsLeft < 0 || secondsLeft > 5) return;
     if (lastTickSecond.current === secondsLeft) return;
     lastTickSecond.current = secondsLeft;
 
-    const intensity = 5 - secondsLeft; // 0 to 4, higher = more intense
+    const intensity = 5 - secondsLeft; // 0 to 5, higher = more intense
     playMechanicalTick(intensity);
   }, []);
 
@@ -166,5 +166,8 @@ export function useAuctionAudio() {
     hasGaveled.current = false;
   }, []);
 
-  return { tick, gavel, reset };
+  return useMemo(
+    () => ({ tick, gavel, reset }),
+    [tick, gavel, reset],
+  );
 }

@@ -74,21 +74,19 @@ export async function handleJoinRoom(
 
   const redis = getRedis();
 
+  // Always ensure bidders are synced to Redis before building snapshot,
+  // regardless of whether the joining user is a spectator or not.
+  const redisBidders = await getRedisBidders(roomId);
+  if (redisBidders.length === 0) {
+    const participants = await loadParticipants(roomId, meta.perRoomBudget);
+    if (participants.length > 0) {
+      await initRoomRedisState(meta, participants);
+    }
+  }
+
   if (isSpectator) {
     // Track spectator in Redis
     await redis.sadd(spectatorsKey(roomId), user.id);
-    // Broadcast updated spectator count to room
-    const spectatorIds = await redis.smembers(spectatorsKey(roomId));
-    io.to(roomId).emit(ServerEvent.SPECTATORS_CHANGED, { spectatorIds });
-  } else {
-    // Existing bidder/auctioneer flow
-    const redisBidders = await getRedisBidders(roomId);
-    if (redisBidders.length === 0) {
-      const participants = await loadParticipants(roomId, meta.perRoomBudget);
-      if (participants.length > 0) {
-        await initRoomRedisState(meta, participants);
-      }
-    }
   }
 
   const snapshot = await buildRoomSnapshot(roomId);
@@ -107,6 +105,12 @@ export async function handleJoinRoom(
   socket.data.roomId = roomId;
   socket.data.isSpectator = isSpectator;
   socket.join(roomId);
+
+  if (isSpectator) {
+    // Broadcast updated spectator count to room after joining
+    const spectatorIds = await redis.smembers(spectatorsKey(roomId));
+    io.to(roomId).emit(ServerEvent.SPECTATORS_CHANGED, { spectatorIds });
+  }
 
   await markPresent(roomId, user.id);
   await broadcastPresence(io, roomId);
