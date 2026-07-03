@@ -312,8 +312,8 @@ export default function AuctionRoomPage() {
     </div>
    </div>
 
-   {/* Bottom bar */}
-   <div className="flex items-center justify-between border-t border-border bg-card px-6 py-4">
+    {/* Bottom bar */}
+    <div className="flex items-center justify-between border-t border-border bg-secondary px-6 py-4 text-secondary-foreground">
     {/* Active bidders */}
     <div className="flex items-center gap-3">
      <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
@@ -345,9 +345,9 @@ export default function AuctionRoomPage() {
          <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
           Your Budget
          </p>
-         <p className="font-display text-lg font-bold text-foreground">
-          ${availableBudget.toLocaleString()}
-         </p>
+          <p className="font-display text-lg font-bold">
+           ${availableBudget.toLocaleString()}
+          </p>
         </div>
        )}
      </div>
