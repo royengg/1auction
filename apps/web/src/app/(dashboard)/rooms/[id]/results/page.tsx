@@ -134,17 +134,17 @@ export default function ResultsPage() {
       )}
 
       {/* Actions */}
-      <div className="mb-10 space-y-3">
+      <div className="mb-10 flex gap-3">
         <Button
           asChild
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+          className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <Link href="/dashboard">BACK TO DASHBOARD</Link>
         </Button>
         <Button
           variant="outline"
           asChild
-          className="w-full border-border bg-transparent"
+          className="flex-1 border-border bg-transparent"
         >
           <Link href="/dashboard">VIEW OTHER AUCTIONS</Link>
         </Button>
